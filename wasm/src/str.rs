@@ -43,7 +43,7 @@ impl From<Box<[u8]>> for OwnedWasmStr {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use std::mem;
 
     use super::*;

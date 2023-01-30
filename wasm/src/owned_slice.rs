@@ -144,7 +144,7 @@ impl<T> From<Box<[T]>> for OwnedSlice<T> {
 wasm_export!(free slice8_free: OwnedSlice<u8>);
 
 #[cfg(test)]
-mod test {
+mod tests {
     use std::mem;
 
     use super::*;
