@@ -38,6 +38,7 @@ warn = [
     "clippy::implicit_clone",
     "clippy::inconsistent_struct_constructor",
     "clippy::items_after_statements",
+    "clippy::manual_let_else",
     "clippy::manual_ok_or",
     "clippy::manual_string_new",
     "clippy::map_unwrap_or",
