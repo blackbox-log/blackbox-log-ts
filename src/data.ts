@@ -1,10 +1,10 @@
 import { Temporal } from 'temporal-polyfill';
 
 import { unreachable } from './utils';
-import { type WasmExports, WasmPointer } from './wasm';
+import { WasmPointer } from './wasm';
 
 import type { FrameDef, Headers } from './headers';
-import type { WasmObject } from './wasm';
+import type { WasmExports, WasmObject } from './wasm';
 
 export type ParserEvent =
 	| { readonly kind: ParserEventKind.Event; readonly data: undefined }

@@ -24,15 +24,14 @@ unsafe impl crate::WasmByValue for WasmStr {}
 pub struct OwnedWasmStr(OwnedSlice<u8>);
 
 impl From<String> for OwnedWasmStr {
-    fn from(str: String) -> Self {
-        let str = str.into_boxed_str();
-        Self::from(str)
+    fn from(s: String) -> Self {
+        Self::from(s.into_boxed_str())
     }
 }
 
 impl From<Box<str>> for OwnedWasmStr {
-    fn from(str: Box<str>) -> Self {
-        Self::from(str.into_boxed_bytes())
+    fn from(s: Box<str>) -> Self {
+        Self::from(s.into_boxed_bytes())
     }
 }
 
