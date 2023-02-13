@@ -11,7 +11,7 @@ specifiers:
   eslint-plugin-import: ^2.26.0
   eslint-plugin-prettier: ^4.2.1
   prettier: ^2.8.1
-  temporal-polyfill: ^0.0.8
+  temporal-polyfill: ^0.1.0
   typescript: ^4.6.4
   typescript-memoize: ^1.1.1
   vite: ^4.0.0
@@ -19,7 +19,7 @@ specifiers:
   vite-plugin-static-copy: ^0.13.0
 
 dependencies:
-  temporal-polyfill: 0.0.8
+  temporal-polyfill: 0.1.0
   typescript-memoize: 1.1.1
 
 devDependencies:
@@ -2155,8 +2155,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /temporal-polyfill/0.0.8:
-    resolution: {integrity: sha512-IuA8GhS1PRC04H/zVNAIxJvCZQum6V5HjqFj7gz1a3SMUf/Kf1xIXILNYtxrWYnGqIU/RrDRxlCKCm/vmqnBvw==}
+  /temporal-polyfill/0.1.0:
+    resolution: {integrity: sha512-h3s/hxen9uqBm6WWOj4cJ3b2lH9NUhzMBps0S3UR40GcDoDHNSl+UbgAHxsMZb8qxpC25ux6iHme8gTQKu0qAg==}
     dependencies:
       temporal-spec: 0.0.3
     dev: false
