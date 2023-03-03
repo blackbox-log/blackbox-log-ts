@@ -100,7 +100,6 @@ impl_structural! {
     #[repr(C)]
     struct DataMain {
         fields: Fields,
-        iteration: u32,
         time: WasmDuration,
     }
 
@@ -191,18 +190,16 @@ impl From<Option<ParserEvent<'_, '_, '_>>> for WasmParseEvent {
 
 impl From<MainFrame<'_, '_, '_>> for DataMain {
     fn from(frame: MainFrame) -> Self {
-        let iteration = frame.iteration();
         let time = WasmDuration::from_microseconds(frame.time_raw());
 
         Self {
             fields: Fields::from(frame),
-            iteration,
             time,
         }
     }
 }
 
-impl From<SlowFrame<'_, '_>> for DataSlow {
+impl From<SlowFrame<'_, '_, '_>> for DataSlow {
     fn from(frame: SlowFrame) -> Self {
         Self {
             fields: Fields::from(frame),
@@ -210,7 +207,7 @@ impl From<SlowFrame<'_, '_>> for DataSlow {
     }
 }
 
-impl From<GpsFrame<'_, '_>> for DataGps {
+impl From<GpsFrame<'_, '_, '_>> for DataGps {
     fn from(frame: GpsFrame) -> Self {
         let time = WasmDuration::from_microseconds(frame.time_raw());
 

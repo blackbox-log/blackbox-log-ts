@@ -22,7 +22,6 @@ export enum ParserEventKind {
 export type FrameFields = ReadonlyMap<string, number>;
 
 export type MainFrame = {
-	readonly iteration: number;
 	readonly time: Temporal.Duration;
 	readonly fields: FrameFields;
 };
@@ -179,12 +178,9 @@ function getMainData(memory: WebAssembly.Memory, start: number, def: FrameDef): 
 	const fields = getFields(memory, start, def);
 	start += fieldsByteLen;
 
-	const [iteration] = new Uint32Array(memory.buffer, start, 1);
-
-	const time = getDuration(memory, start + 4);
+	const time = getDuration(memory, start);
 
 	return {
-		iteration,
 		time,
 		fields,
 	};

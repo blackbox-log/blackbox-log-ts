@@ -10,7 +10,7 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies.blackbox-log]
-version = "0.2.0"
+version = "0.3.0"
 # git = "https://github.com/blackbox-log/blackbox-log"
 # path = "../../blackbox-log"
 
