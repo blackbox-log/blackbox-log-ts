@@ -37,17 +37,16 @@ impl WasmHeaders {
     }
 
     fn main_def(&self) -> WasmFrameDef {
-        WasmFrameDef::from(&self.headers.main_frame_def)
+        WasmFrameDef::from(self.headers.main_frame_def())
     }
 
     fn slow_def(&self) -> WasmFrameDef {
-        WasmFrameDef::from(&self.headers.slow_frame_def)
+        WasmFrameDef::from(self.headers.slow_frame_def())
     }
 
     fn gps_def(&self) -> WasmFrameDef {
         self.headers
-            .gps_frame_def
-            .as_ref()
+            .gps_frame_def()
             .map_or_else(WasmFrameDef::default, WasmFrameDef::from)
     }
 }
@@ -103,14 +102,14 @@ wasm_export! {
     }
 
     fn headers_firmwareRevision(headers: ref Box<WasmHeaders>) -> WasmStr {
-        headers.headers.firmware_revision.into()
+        headers.headers.firmware_revision().into()
     }
 
     fn headers_boardInfo(headers: ref Box<WasmHeaders>) -> WasmStr {
-        headers.headers.board_info.into()
+        headers.headers.board_info().into()
     }
 
     fn headers_craftName(headers: ref Box<WasmHeaders>) -> WasmStr {
-        headers.headers.craft_name.into()
+        headers.headers.craft_name().into()
     }
 }
