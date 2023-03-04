@@ -1,3 +1,4 @@
+export { FirmwareKind, Version } from './headers';
 export { ParseError } from './parser';
 export type {
 	DataParser,

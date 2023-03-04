@@ -9,6 +9,9 @@ publish = false
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[dependencies]
+time = "0.3.17"
+
 [dependencies.blackbox-log]
 version = "0.3.0"
 # git = "https://github.com/blackbox-log/blackbox-log"

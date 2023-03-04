@@ -26,6 +26,12 @@
 		<p id="log-info" class="hidden">
 			Firmware revision: <span id="firmware-revision"></span>
 			<br />
+			Firmware kind: <span id="firmware-kind"></span>
+			<br />
+			Firmware date: <span id="firmware-date"></span>
+			<br />
+			Firmware version: <span id="firmware-version"></span>
+			<br />
 			Board info: <span id="board-info"></span>
 			<br />
 			Craft name: <span id="craft-name"></span>
@@ -93,6 +99,10 @@
 
 				const headers = file.parseHeaders(value - 1);
 				document.querySelector('#firmware-revision').innerText = headers.firmwareRevision;
+				document.querySelector('#firmware-kind').innerText = headers.firmwareKind;
+				document.querySelector('#firmware-date').innerText =
+					headers.firmwareDate?.toString() ?? '';
+				document.querySelector('#firmware-version').innerText = headers.firmwareVersion;
 				document.querySelector('#board-info').innerText = headers.boardInfo ?? '';
 				document.querySelector('#craft-name').innerText = headers.craftName ?? '';
 				updateMemory();

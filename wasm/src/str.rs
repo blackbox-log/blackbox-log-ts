@@ -1,5 +1,6 @@
 use crate::OwnedSlice;
 
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub struct WasmStr(usize, *const u8);
 

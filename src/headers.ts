@@ -1,3 +1,4 @@
+import { Temporal } from 'temporal-polyfill';
 import { Memoize as memoize } from 'typescript-memoize';
 
 import { DataParser } from './data';
@@ -68,6 +69,39 @@ export class Headers implements WasmObject {
 	}
 
 	@memoize()
+	get firmwareKind(): FirmwareKind {
+		const kind = this.#wasm.headers_firmwareKind(this.#ptr.ptr);
+		switch (kind) {
+			case 0:
+				return FirmwareKind.Betaflight;
+			case 1:
+				return FirmwareKind.Inav;
+			default:
+				throw new Error(`invalid FirmwareKind: ${kind}`);
+		}
+	}
+
+	@memoize()
+	get firmwareDate(): Temporal.PlainDateTime | string | undefined {
+		const [discriminant, ...rest] = this.#wasm.headers_firmwareDate(this.#ptr.ptr);
+		switch (discriminant) {
+			case 1:
+				return new Temporal.PlainDateTime(...rest);
+			case 2:
+				return getWasmStr([rest[0], rest[1]], this.#wasm);
+			// Only ever 0:
+			default:
+				return undefined;
+		}
+	}
+
+	@memoize()
+	get firmwareVersion(): Version {
+		const version = this.#wasm.headers_firmwareVersion(this.#ptr.ptr);
+		return new Version(...version);
+	}
+
+	@memoize()
 	get boardInfo(): string | undefined {
 		const name = this.#wasm.headers_boardInfo(this.#ptr.ptr);
 		return getOptionalWasmStr(name, this.#wasm);
@@ -102,4 +136,17 @@ function getFrameDef(ptr: number, wasm: WasmExports): FrameDef {
 	wasm.frameDef_free(ptr);
 
 	return def;
+}
+
+export enum FirmwareKind {
+	Betaflight = 'Betaflight',
+	Inav = 'INAV',
+}
+
+export class Version {
+	constructor(public major: number, public minor: number, public patch: number) {}
+
+	toString(): string {
+		return `${this.major}.${this.minor}.${this.patch}`;
+	}
 }

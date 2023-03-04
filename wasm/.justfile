@@ -43,9 +43,11 @@ build:
 multivalue:
     multi-value-reverse-polyfill {{ wasmFile }} \
         'data_counts i32 i32 i32 i32 i32' \
+        'headers_firmwareRevision i32 i32' \
+        'headers_firmwareDate i32 i32 i32 i32 i32 i32 i32' \
+        'headers_firmwareVersion i32 i32 i32' \
         'headers_boardInfo i32 i32' \
-        'headers_craftName i32 i32' \
-        'headers_firmwareRevision i32 i32'
+        'headers_craftName i32 i32'
 
     @mv {{ targetDir / 'blackbox-log.multivalue.wasm' }} {{ wasmFile }}
 

@@ -1,10 +1,12 @@
 use blackbox_log::frame::{FieldDef, FrameDef};
+use blackbox_log::headers::{Firmware, FirmwareVersion};
 use blackbox_log::prelude::*;
 use blackbox_log::Reader;
+use time::PrimitiveDateTime;
 
 use crate::data::WasmDataParser;
 use crate::str::WasmStr;
-use crate::{OwnedSlice, Shared};
+use crate::{OwnedSlice, Shared, WasmByValue};
 
 pub struct WasmHeaders {
     headers: Shared<Headers<'static>>,
@@ -82,6 +84,79 @@ impl<'data, F: FrameDef<'data>> From<&F> for WasmFrameDef {
     }
 }
 
+#[derive(Clone)]
+#[repr(C)]
+struct WasmFirmwareDate {
+    discriminant: u32,
+    data: WasmFirmwareDateData,
+}
+
+// SAFETY: enforced by where clause
+unsafe impl WasmByValue for WasmFirmwareDate where WasmFirmwareDateData: WasmByValue {}
+
+impl<'a> From<Option<Result<PrimitiveDateTime, &'a str>>> for WasmFirmwareDate {
+    fn from(value: Option<Result<PrimitiveDateTime, &'a str>>) -> Self {
+        match value {
+            None => Self {
+                discriminant: 0,
+                data: WasmFirmwareDateData { none: () },
+            },
+            Some(Ok(date)) => Self {
+                discriminant: 1,
+                data: WasmFirmwareDateData { ok: date.into() },
+            },
+            Some(Err(s)) => Self {
+                discriminant: 2,
+                data: WasmFirmwareDateData { err: s.into() },
+            },
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+#[repr(C)]
+union WasmFirmwareDateData {
+    none: (),
+    ok: WasmDate,
+    err: WasmStr,
+}
+
+// SAFETY: enforced by where clauses
+unsafe impl WasmByValue for WasmFirmwareDateData
+where
+    (): WasmByValue,
+    WasmDate: WasmByValue,
+    WasmStr: WasmByValue,
+{
+}
+
+#[derive(Clone, Copy)]
+#[repr(C)]
+struct WasmDate {
+    year: i32,
+    month: u32,
+    day: u32,
+    hour: u32,
+    minute: u32,
+    second: u32,
+}
+
+// SAFETY: only contains 32 bit values
+unsafe impl WasmByValue for WasmDate {}
+
+impl From<PrimitiveDateTime> for WasmDate {
+    fn from(date: PrimitiveDateTime) -> Self {
+        Self {
+            year: date.year(),
+            month: u8::from(date.month()).into(),
+            day: date.day().into(),
+            hour: date.hour().into(),
+            minute: date.minute().into(),
+            second: date.second().into(),
+        }
+    }
+}
+
 wasm_export!(free headers_free: Box<WasmHeaders>);
 wasm_export!(free frameDef_free: Box<WasmFrameDef>);
 wasm_export! {
@@ -103,6 +178,26 @@ wasm_export! {
 
     fn headers_firmwareRevision(headers: ref Box<WasmHeaders>) -> WasmStr {
         headers.headers.firmware_revision().into()
+    }
+
+    fn headers_firmwareKind(headers: ref Box<WasmHeaders>) -> u32 {
+        match headers.headers.firmware() {
+            Firmware::Betaflight(_) => 0,
+            Firmware::Inav(_) => 1,
+        }
+    }
+
+    fn headers_firmwareDate(headers: ref Box<WasmHeaders>) -> WasmFirmwareDate {
+        headers.headers.firmware_date().into()
+    }
+
+    fn headers_firmwareVersion(headers: ref Box<WasmHeaders>) -> [u32; 3] {
+        let FirmwareVersion {
+            major,
+            minor,
+            patch,
+        } = headers.headers.firmware().version();
+        [major.into(), minor.into(), patch.into()]
     }
 
     fn headers_boardInfo(headers: ref Box<WasmHeaders>) -> WasmStr {

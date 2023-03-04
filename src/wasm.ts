@@ -23,6 +23,9 @@ export type WasmExports = {
 	headers_slowDef: (ptr: number) => number;
 	headers_gpsDef: (ptr: number) => number;
 	headers_firmwareRevision: (ptr: number) => WasmStr;
+	headers_firmwareKind: (ptr: number) => number;
+	headers_firmwareDate: (ptr: number) => [number, number, number, number, number, number, number];
+	headers_firmwareVersion: (ptr: number) => [major: number, minor: number, patch: number];
 	headers_boardInfo: (ptr: number) => WasmStr;
 	headers_craftName: (ptr: number) => WasmStr;
 
