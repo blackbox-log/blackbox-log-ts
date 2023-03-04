@@ -92,3 +92,26 @@ impl<T: WasmByValue> FromWasmFfi for T {
         ffi
     }
 }
+
+macro_rules! impl_wasm_ffi_small_int {
+    ($ffi:ty : $($t:ty),+) => {$(
+        impl WasmFfi for $t {
+            type Ffi = $ffi;
+        }
+
+        impl IntoWasmFfi for $t {
+            fn into_ffi(self) -> Self::Ffi {
+                self as Self::Ffi
+            }
+        }
+
+        impl FromWasmFfi for $t {
+            unsafe fn from_ffi(ffi: Self::Ffi) -> Self {
+                ffi as Self
+            }
+        }
+    )+}
+}
+
+impl_wasm_ffi_small_int!(u32: u8, u16);
+impl_wasm_ffi_small_int!(i32: i8, i16);
