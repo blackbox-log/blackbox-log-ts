@@ -8,7 +8,7 @@ fmt:
 # Check formatting, lints, and types
 check:
     pnpm prettier --check .
-    pnpm eslint --cache src
+    pnpm eslint src
     pnpm tsc
 
 # Run the dev server
