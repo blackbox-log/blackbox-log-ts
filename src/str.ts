@@ -1,6 +1,7 @@
+import type { WasmSlice } from './slice';
 import type { WasmExports } from './wasm';
 
-export type WasmStr = [len: number, ptr: number];
+export type WasmStr = WasmSlice;
 
 let cachedDecoder: undefined | TextDecoder;
 function getDecoder(): TextDecoder {

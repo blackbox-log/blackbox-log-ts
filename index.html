@@ -36,6 +36,12 @@
 			<br />
 			Craft name: <span id="craft-name"></span>
 			<br />
+			Debug mode: <span id="debug-mode"></span>
+			<br />
+			Disabled fields: <span id="disabled-fields"></span>
+			<br />
+			Features: <span id="features"></span>
+			<br />
 			Events: <span id="event-count"></span>
 			<br />
 			Main frames: <span id="main-count"></span>
@@ -105,6 +111,13 @@
 				document.querySelector('#firmware-version').innerText = headers.firmwareVersion;
 				document.querySelector('#board-info').innerText = headers.boardInfo ?? '';
 				document.querySelector('#craft-name').innerText = headers.craftName ?? '';
+				document.querySelector('#debug-mode').innerText = headers.debugMode;
+				document.querySelector('#disabled-fields').innerText = Array.from(
+					headers.disabledFields,
+				).join(', ');
+				document.querySelector('#features').innerText = Array.from(headers.features).join(
+					', ',
+				);
 				updateMemory();
 
 				if (animationHandle !== undefined) {

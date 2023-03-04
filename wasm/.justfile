@@ -47,7 +47,10 @@ multivalue:
         'headers_firmwareDate i32 i32 i32 i32 i32 i32 i32' \
         'headers_firmwareVersion i32 i32 i32' \
         'headers_boardInfo i32 i32' \
-        'headers_craftName i32 i32'
+        'headers_craftName i32 i32' \
+        'headers_debugMode i32 i32' \
+        'headers_disabledFields i32 i32' \
+        'headers_features i32 i32'
 
     @mv {{ targetDir / 'blackbox-log.multivalue.wasm' }} {{ wasmFile }}
 

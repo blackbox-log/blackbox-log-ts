@@ -1,3 +1,4 @@
+import type { WasmSlice } from './slice';
 import type { WasmStr } from './str';
 
 export type WasmObject = {
@@ -10,6 +11,7 @@ export type WasmExports = {
 
 	data_alloc: (length: number) => number;
 	slice8_free: (length: number, ptr: number) => void;
+	sliceStr_free: (length: number, ptr: number) => void;
 
 	file_free: (ptr: number) => void;
 	file_new: (ptr: number, length: number) => number;
@@ -28,6 +30,9 @@ export type WasmExports = {
 	headers_firmwareVersion: (ptr: number) => [major: number, minor: number, patch: number];
 	headers_boardInfo: (ptr: number) => WasmStr;
 	headers_craftName: (ptr: number) => WasmStr;
+	headers_debugMode: (ptr: number) => WasmStr;
+	headers_disabledFields: (ptr: number) => WasmSlice;
+	headers_features: (ptr: number) => WasmSlice;
 
 	frameDef_free: (ptr: number) => void;
 

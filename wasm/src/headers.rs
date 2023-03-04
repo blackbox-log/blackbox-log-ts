@@ -157,6 +157,14 @@ impl From<PrimitiveDateTime> for WasmDate {
     }
 }
 
+fn flag_set_to_wasm_slice<S: blackbox_log::units::FlagSet>(set: S) -> OwnedSlice<WasmStr> {
+    set.as_names()
+        .into_iter()
+        .map(WasmStr::from)
+        .collect::<Vec<_>>()
+        .into()
+}
+
 wasm_export!(free headers_free: Box<WasmHeaders>);
 wasm_export!(free frameDef_free: Box<WasmFrameDef>);
 wasm_export! {
@@ -206,5 +214,17 @@ wasm_export! {
 
     fn headers_craftName(headers: ref Box<WasmHeaders>) -> WasmStr {
         headers.headers.craft_name().into()
+    }
+
+    fn headers_debugMode(headers: ref Box<WasmHeaders>) -> WasmStr {
+        headers.headers.debug_mode().as_name().into()
+    }
+
+    fn headers_disabledFields(headers: ref Box<WasmHeaders>) -> OwnedSlice<WasmStr> {
+        flag_set_to_wasm_slice(headers.headers.disabled_fields())
+    }
+
+    fn headers_features(headers: ref Box<WasmHeaders>) -> OwnedSlice<WasmStr> {
+        flag_set_to_wasm_slice(headers.headers.features())
     }
 }

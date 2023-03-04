@@ -2,7 +2,9 @@ import { Temporal } from 'temporal-polyfill';
 import { Memoize as memoize } from 'typescript-memoize';
 
 import { DataParser } from './data';
+import { getWasmSliceStr } from './slice';
 import { getOptionalWasmStr, getWasmStr } from './str';
+import { freezeSet } from './utils';
 import { WasmPointer } from './wasm';
 
 import type { WasmExports, WasmObject } from './wasm';
@@ -111,6 +113,26 @@ export class Headers implements WasmObject {
 	get craftName(): string | undefined {
 		const name = this.#wasm.headers_craftName(this.#ptr.ptr);
 		return getOptionalWasmStr(name, this.#wasm);
+	}
+
+	@memoize()
+	get debugMode(): string {
+		const raw = this.#wasm.headers_debugMode(this.#ptr.ptr);
+		return getWasmStr(raw, this.#wasm);
+	}
+
+	@memoize()
+	get disabledFields(): Set<string> {
+		const slice = this.#wasm.headers_disabledFields(this.#ptr.ptr);
+		const fields = new Set(getWasmSliceStr(slice, this.#wasm));
+		return freezeSet(fields);
+	}
+
+	@memoize()
+	get features(): Set<string> {
+		const slice = this.#wasm.headers_features(this.#ptr.ptr);
+		const fields = new Set(getWasmSliceStr(slice, this.#wasm));
+		return freezeSet(fields);
 	}
 }
 

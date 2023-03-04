@@ -142,6 +142,7 @@ impl<T> From<Box<[T]>> for OwnedSlice<T> {
 }
 
 wasm_export!(free slice8_free: OwnedSlice<u8>);
+wasm_export!(free sliceStr_free: OwnedSlice<crate::str::WasmStr>);
 
 #[cfg(test)]
 mod tests {
