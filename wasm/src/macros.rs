@@ -9,8 +9,8 @@ macro_rules! wasm_export {
         #[no_mangle]
         #[allow(non_snake_case, improper_ctypes_definitions)]
         $(#[$attr])*
-        unsafe extern "C" fn $fn($($arg : <$arg_type as crate::WasmFfi>::Ffi),*) $(-> <$return as crate::WasmFfi>::Ffi)? {
-            $( #[allow(unused_mut)] let mut $arg = <$arg_type as crate::FromWasmFfi>::from_ffi($arg); )*
+        unsafe extern "C" fn $fn($($arg : <$arg_type as $crate::WasmFfi>::Ffi),*) $(-> <$return as $crate::WasmFfi>::Ffi)? {
+            $( #[allow(unused_mut)] let mut $arg = <$arg_type as $crate::FromWasmFfi>::from_ffi($arg); )*
 
             let return_value $(: $return)? = {
                 $( wasm_export!(_pass $pass $arg $arg_type); )*
@@ -19,7 +19,7 @@ macro_rules! wasm_export {
 
             $( wasm_export!(_forget $pass $arg); )*
 
-            crate::IntoWasmFfi::into_ffi(return_value)
+            $crate::IntoWasmFfi::into_ffi(return_value)
         }
     )+};
 
@@ -33,18 +33,18 @@ macro_rules! wasm_export {
 
 macro_rules! impl_boxed_wasm_ffi {
     ($t:ty) => {
-        impl crate::WasmFfi for Box<$t> {
+        impl $crate::WasmFfi for Box<$t> {
             type Ffi = *mut $t;
         }
 
-        impl crate::IntoWasmFfi for Box<$t> {
+        impl $crate::IntoWasmFfi for Box<$t> {
             #[inline(always)]
             fn into_ffi(self) -> Self::Ffi {
                 Box::into_raw(self)
             }
         }
 
-        impl crate::FromWasmFfi for Box<$t> {
+        impl $crate::FromWasmFfi for Box<$t> {
             #[inline(always)]
             unsafe fn from_ffi(ffi: Self::Ffi) -> Self {
                 Box::from_raw(ffi)
@@ -69,9 +69,9 @@ macro_rules! impl_structural {
 
         // SAFETY: bounds guarantee all fields also impl Structural, and repr(C)
         // guarantees a known memory layout
-        unsafe impl crate::Structural for $name
+        unsafe impl $crate::Structural for $name
         where
-            $( $field_type: crate::Structural ),+
+            $( $field_type: $crate::Structural ),+
         {}
     )+};
     (
@@ -85,7 +85,7 @@ macro_rules! impl_structural {
 
         // SAFETY: bound guanantees the field also impls Structural, but it must
         // also be repr(C)
-        unsafe impl crate::Structural for $name where $field: crate::Structural {}
+        unsafe impl $crate::Structural for $name where $field: $crate::Structural {}
     };
     (
         #[repr($repr:ty)]
@@ -101,6 +101,6 @@ macro_rules! impl_structural {
         }
 
         // SAFETY: bound guarantees the repr is `Structural`
-        unsafe impl crate::Structural for $name where $repr: crate::Structural {}
+        unsafe impl $crate::Structural for $name where $repr: $crate::Structural {}
     };
 }
