@@ -10,7 +10,7 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-time = "0.3.17"
+time = "0.3.20"
 
 [dependencies.blackbox-log]
 version = "0.3.0"
