@@ -227,4 +227,8 @@ wasm_export! {
     fn headers_features(headers: ref Box<WasmHeaders>) -> OwnedSlice<WasmStr> {
         flag_set_to_wasm_slice(headers.headers.features())
     }
+
+    fn headers_pwmProtocol(headers: ref Box<WasmHeaders>) -> WasmStr {
+        headers.headers.pwm_protocol().as_name().into()
+    }
 }

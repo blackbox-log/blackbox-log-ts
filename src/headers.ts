@@ -134,6 +134,12 @@ export class Headers implements WasmObject {
 		const fields = new Set(getWasmSliceStr(slice, this.#wasm));
 		return freezeSet(fields);
 	}
+
+	@memoize()
+	get pwmProtocol(): string {
+		const raw = this.#wasm.headers_pwmProtocol(this.#ptr.ptr);
+		return getWasmStr(raw, this.#wasm);
+	}
 }
 
 function getFrameDef(ptr: number, wasm: WasmExports): FrameDef {

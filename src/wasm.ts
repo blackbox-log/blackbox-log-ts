@@ -33,6 +33,7 @@ export type WasmExports = {
 	headers_debugMode: (ptr: number) => WasmStr;
 	headers_disabledFields: (ptr: number) => WasmSlice;
 	headers_features: (ptr: number) => WasmSlice;
+	headers_pwmProtocol: (ptr: number) => WasmStr;
 
 	frameDef_free: (ptr: number) => void;
 

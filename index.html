@@ -42,6 +42,8 @@
 			<br />
 			Features: <span id="features"></span>
 			<br />
+			PWM protocol: <span id="pwm-protocol"></span>
+			<br />
 			Events: <span id="event-count"></span>
 			<br />
 			Main frames: <span id="main-count"></span>
@@ -118,6 +120,7 @@
 				document.querySelector('#features').innerText = Array.from(headers.features).join(
 					', ',
 				);
+				document.querySelector('#pwm-protocol').innerText = headers.pwmProtocol;
 				updateMemory();
 
 				if (animationHandle !== undefined) {

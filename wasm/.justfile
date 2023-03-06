@@ -50,7 +50,8 @@ multivalue:
         'headers_craftName i32 i32' \
         'headers_debugMode i32 i32' \
         'headers_disabledFields i32 i32' \
-        'headers_features i32 i32'
+        'headers_features i32 i32' \
+        'headers_pwmProtocol i32 i32'
 
     @mv {{ targetDir / 'blackbox-log.multivalue.wasm' }} {{ wasmFile }}
 
