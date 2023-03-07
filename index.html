@@ -44,6 +44,8 @@
 			<br />
 			PWM protocol: <code id="pwm-protocol"></code>
 			<br />
+			Unknown headers: <span id="unknown-count"></span> (see console)
+			<br />
 			Events: <span id="event-count"></span>
 			<br />
 			Main frames: <span id="main-count"></span>
@@ -121,6 +123,8 @@
 					', ',
 				);
 				document.querySelector('#pwm-protocol').innerText = headers.pwmProtocol;
+				document.querySelector('#unknown-count').innerText = headers.unknown.size;
+				console.log('unknown headers:', headers.unknown);
 				updateMemory();
 
 				if (animationHandle !== undefined) {

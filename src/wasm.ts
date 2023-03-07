@@ -34,8 +34,10 @@ export type WasmExports = {
 	headers_disabledFields: (ptr: number) => WasmSlice;
 	headers_features: (ptr: number) => WasmSlice;
 	headers_pwmProtocol: (ptr: number) => WasmStr;
+	headers_unknown: (ptr: number) => WasmSlice;
 
 	frameDef_free: (ptr: number) => void;
+	unknownHeaders_free: (length: number, ptr: number) => void;
 
 	data_free: (ptr: number) => void;
 	data_resultPtr: (ptr: number) => number;

@@ -51,6 +51,19 @@ impl WasmHeaders {
             .gps_frame_def()
             .map_or_else(WasmFrameDef::default, WasmFrameDef::from)
     }
+
+    fn unknown(&self) -> OwnedSlice<UnknownHeader> {
+        let mut entries = self.headers.unknown().iter().collect::<Vec<_>>();
+        entries.sort_unstable_by_key(|(key, _)| *key);
+        let entries = entries
+            .into_iter()
+            .map(|(&key, &value)| UnknownHeader {
+                key: key.into(),
+                value: value.into(),
+            })
+            .collect::<Vec<_>>();
+        entries.into()
+    }
 }
 
 #[derive(Default)]
@@ -157,6 +170,15 @@ impl From<PrimitiveDateTime> for WasmDate {
     }
 }
 
+#[repr(C)]
+struct UnknownHeader {
+    key: WasmStr,
+    value: WasmStr,
+}
+
+// SAFETY: enforced by where clauses
+unsafe impl WasmByValue for UnknownHeader where WasmStr: WasmByValue {}
+
 fn flag_set_to_wasm_slice<S: blackbox_log::units::FlagSet>(set: S) -> OwnedSlice<WasmStr> {
     set.as_names()
         .into_iter()
@@ -167,6 +189,7 @@ fn flag_set_to_wasm_slice<S: blackbox_log::units::FlagSet>(set: S) -> OwnedSlice
 
 wasm_export!(free headers_free: Box<WasmHeaders>);
 wasm_export!(free frameDef_free: Box<WasmFrameDef>);
+wasm_export!(free unknownHeaders_free: OwnedSlice<UnknownHeader>);
 wasm_export! {
     fn headers_getDataParser(headers: ref Box<WasmHeaders>) -> Box<WasmDataParser> {
         Box::new(headers.get_data_parser())
@@ -230,5 +253,9 @@ wasm_export! {
 
     fn headers_pwmProtocol(headers: ref Box<WasmHeaders>) -> WasmStr {
         headers.headers.pwm_protocol().as_name().into()
+    }
+
+    fn headers_unknown(headers: ref Box<WasmHeaders>) -> OwnedSlice<UnknownHeader> {
+        headers.unknown()
     }
 }

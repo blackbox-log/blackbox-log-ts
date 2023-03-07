@@ -4,7 +4,7 @@ import { Memoize as memoize } from 'typescript-memoize';
 import { DataParser } from './data';
 import { getWasmSliceStr } from './slice';
 import { getOptionalWasmStr, getWasmStr } from './str';
-import { freezeSet } from './utils';
+import { freezeMap, freezeSet } from './utils';
 import { WasmPointer } from './wasm';
 
 import type { WasmExports, WasmObject } from './wasm';
@@ -139,6 +139,24 @@ export class Headers implements WasmObject {
 	get pwmProtocol(): string {
 		const raw = this.#wasm.headers_pwmProtocol(this.#ptr.ptr);
 		return getWasmStr(raw, this.#wasm);
+	}
+
+	@memoize()
+	get unknown(): Map<string, string> {
+		const [len, ptr] = this.#wasm.headers_unknown(this.#ptr.ptr);
+		const map = new Map();
+
+		if (len > 0) {
+			const data = new Uint32Array(this.#wasm.memory.buffer, ptr, len * 4);
+			for (let i = 0; i < len * 4; i += 4) {
+				const key = getWasmStr([data[i], data[i + 1]], this.#wasm);
+				const value = getWasmStr([data[i + 2], data[i + 3]], this.#wasm);
+				map.set(key, value);
+			}
+		}
+
+		this.#wasm.unknownHeaders_free(len, ptr);
+		return freezeMap(map);
 	}
 }
 
