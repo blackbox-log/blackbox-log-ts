@@ -11,6 +11,7 @@ mod owned_slice;
 mod panic;
 mod shared;
 mod str;
+mod units;
 
 use std::ptr::{self, NonNull};
 

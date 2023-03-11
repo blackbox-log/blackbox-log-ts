@@ -6,6 +6,7 @@ use time::PrimitiveDateTime;
 
 use crate::data::WasmDataParser;
 use crate::str::WasmStr;
+use crate::units::WasmUnit;
 use crate::{OwnedSlice, Shared, WasmByValue};
 
 pub struct WasmHeaders {
@@ -76,6 +77,7 @@ impl_boxed_wasm_ffi!(WasmFrameDef);
 struct WasmFieldDef {
     name: WasmStr,
     signed: bool,
+    unit: WasmUnit,
 }
 
 impl<'data, F: FrameDef<'data>> From<&F> for WasmFrameDef {
@@ -83,11 +85,14 @@ impl<'data, F: FrameDef<'data>> From<&F> for WasmFrameDef {
         let mut slice = OwnedSlice::new_zeroed(frame.len());
 
         for (i, out) in slice.iter_mut().enumerate() {
-            let FieldDef { name, signed, .. } = frame.get(i).unwrap();
+            let FieldDef {
+                name, signed, unit, ..
+            } = frame.get(i).unwrap();
 
             *out = WasmFieldDef {
                 name: name.into(),
                 signed,
+                unit: unit.into().into(),
             };
         }
 
@@ -255,5 +260,15 @@ wasm_export! {
 
     fn headers_unknown(headers: ref Box<WasmHeaders>) -> OwnedSlice<UnknownHeader> {
         headers.unknown()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn field_def_size() {
+        assert_eq!(std::mem::size_of::<WasmFieldDef>(), 24);
     }
 }

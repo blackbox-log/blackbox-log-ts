@@ -4,22 +4,24 @@ import { Memoize as memoize } from 'typescript-memoize';
 import { DataParser } from './data';
 import { getWasmSliceStr } from './slice';
 import { getOptionalWasmStr, getWasmStr } from './str';
+import { Unit } from './units';
 import { freezeMap, freezeSet } from './utils';
 import { WasmPointer } from './wasm';
 
 import type { WasmExports, WasmObject } from './wasm';
 
-export type FrameDef = FieldDef[];
-export type FieldDef = {
-	name: string;
-	signed: boolean;
-};
+export type FrameDef = Map<string, { unit: Unit }>;
+export type InternalFrameDef = Map<string, { unit: Unit; signed: boolean }>;
 
 export class Headers implements WasmObject {
 	readonly #wasm: WasmExports;
 	readonly #ptr: WasmPointer;
 
 	#parsers: Array<WeakRef<DataParser>> = [];
+
+	#mainFrameDef: InternalFrameDef | undefined;
+	#slowFrameDef: InternalFrameDef | undefined;
+	#gpsFrameDef: InternalFrameDef | undefined;
 
 	constructor(wasm: WasmExports, file: number, log: number) {
 		this.#wasm = wasm;
@@ -41,27 +43,54 @@ export class Headers implements WasmObject {
 
 	getDataParser(): DataParser {
 		const ptr = this.#wasm.headers_getDataParser(this.#ptr.ptr);
-		const parser = new DataParser(this.#wasm, this, ptr);
+
+		const parser = new DataParser(this.#wasm, this, ptr, {
+			main: this.#getMainFrameDef(),
+			slow: this.#getSlowFrameDef(),
+			gps: this.#getGpsFrameDef(),
+		});
+
 		this.#parsers.push(new WeakRef(parser));
 		return parser;
 	}
 
-	@memoize()
+	#getMainFrameDef(): InternalFrameDef {
+		if (this.#mainFrameDef === undefined) {
+			const ptr = this.#wasm.headers_mainDef(this.#ptr.ptr);
+			this.#mainFrameDef = getFrameDef(ptr, this.#wasm);
+		}
+
+		return this.#mainFrameDef;
+	}
+
 	get mainFrameDef(): FrameDef {
-		const ptr = this.#wasm.headers_mainDef(this.#ptr.ptr);
-		return getFrameDef(ptr, this.#wasm);
+		return this.#getMainFrameDef();
 	}
 
-	@memoize()
+	#getSlowFrameDef(): InternalFrameDef {
+		if (this.#slowFrameDef === undefined) {
+			const ptr = this.#wasm.headers_slowDef(this.#ptr.ptr);
+			this.#slowFrameDef = getFrameDef(ptr, this.#wasm);
+		}
+
+		return this.#slowFrameDef;
+	}
+
 	get slowFrameDef(): FrameDef {
-		const ptr = this.#wasm.headers_slowDef(this.#ptr.ptr);
-		return getFrameDef(ptr, this.#wasm);
+		return this.#getSlowFrameDef();
 	}
 
-	@memoize()
+	#getGpsFrameDef(): InternalFrameDef {
+		if (this.#gpsFrameDef === undefined) {
+			const ptr = this.#wasm.headers_gpsDef(this.#ptr.ptr);
+			this.#gpsFrameDef = getFrameDef(ptr, this.#wasm);
+		}
+
+		return this.#gpsFrameDef;
+	}
+
 	get gpsFrameDef(): FrameDef {
-		const ptr = this.#wasm.headers_gpsDef(this.#ptr.ptr);
-		return getFrameDef(ptr, this.#wasm);
+		return this.#getGpsFrameDef();
 	}
 
 	@memoize()
@@ -160,21 +189,28 @@ export class Headers implements WasmObject {
 	}
 }
 
-function getFrameDef(ptr: number, wasm: WasmExports): FrameDef {
+function getFrameDef(ptr: number, wasm: WasmExports): InternalFrameDef {
 	const fieldDefLength = 3;
 
 	const [len, fields] = new Uint32Array(wasm.memory.buffer, ptr, 2);
 
-	const def = [];
+	const def: InternalFrameDef = new Map();
 	if (len !== 0 && fields !== 0) {
-		const data = new Uint32Array(wasm.memory.buffer, fields, len * fieldDefLength);
+		const data32 = new Uint32Array(wasm.memory.buffer, fields, len * fieldDefLength);
+		const data8 = new Uint8Array(wasm.memory.buffer, fields, len * fieldDefLength * 4);
 
 		for (let field = 0; field < len; field++) {
-			const start = field * fieldDefLength;
+			const start32 = field * fieldDefLength;
 
-			def.push({
-				name: getWasmStr([data[start], data[start + 1]], wasm),
-				signed: data[start + 2] !== 0,
+			const name = getWasmStr([data32[start32], data32[start32 + 1]], wasm);
+
+			const start8 = start32 * 4 + 8;
+			const signed = data8[start8] !== 0;
+			const unit = data8[start8 + 1];
+
+			def.set(name, {
+				unit: unit in Unit ? unit : Unit.Unitless,
+				signed,
 			});
 		}
 	}

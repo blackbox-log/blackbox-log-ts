@@ -3,7 +3,7 @@ import { Temporal } from 'temporal-polyfill';
 import { unreachable } from './utils';
 import { WasmPointer } from './wasm';
 
-import type { FrameDef, Headers } from './headers';
+import type { Headers, InternalFrameDef } from './headers';
 import type { WasmExports, WasmObject } from './wasm';
 
 export type ParserEvent =
@@ -50,13 +50,24 @@ export class DataParser implements WasmObject, Iterable<ParserEvent>, Iterator<P
 	readonly #ptr: WasmPointer;
 	readonly #headers: Headers;
 	readonly #parserEventPtr: number;
+	readonly #mainFrameDef: InternalFrameDef;
+	readonly #slowFrameDef: InternalFrameDef;
+	readonly #gpsFrameDef: InternalFrameDef;
 	#done = false;
 
-	constructor(wasm: WasmExports, headers: Headers, ptr: number) {
+	constructor(
+		wasm: WasmExports,
+		headers: Headers,
+		ptr: number,
+		frameDefs: { main: InternalFrameDef; slow: InternalFrameDef; gps: InternalFrameDef },
+	) {
 		this.#wasm = wasm;
 		this.#headers = headers;
 		this.#ptr = new WasmPointer(ptr, wasm.data_free);
 		this.#parserEventPtr = wasm.data_resultPtr(ptr);
+		this.#mainFrameDef = frameDefs.main;
+		this.#slowFrameDef = frameDefs.slow;
+		this.#gpsFrameDef = frameDefs.gps;
 	}
 
 	free() {
@@ -134,19 +145,19 @@ export class DataParser implements WasmObject, Iterable<ParserEvent>, Iterator<P
 			case ParserEventKind.MainFrame:
 				return {
 					kind,
-					data: getMainData(this.#wasm.memory, dataStart, this.headers.mainFrameDef),
+					data: getMainData(this.#wasm.memory, dataStart, this.#mainFrameDef),
 				};
 
 			case ParserEventKind.SlowFrame:
 				return {
 					kind,
-					data: getSlowData(this.#wasm.memory, dataStart, this.headers.slowFrameDef),
+					data: getSlowData(this.#wasm.memory, dataStart, this.#slowFrameDef),
 				};
 
 			case ParserEventKind.GpsFrame:
 				return {
 					kind,
-					data: getGpsData(this.#wasm.memory, dataStart, this.headers.gpsFrameDef),
+					data: getGpsData(this.#wasm.memory, dataStart, this.#gpsFrameDef),
 				};
 
 			default:
@@ -174,7 +185,7 @@ function getParserEventKind(raw: number): ParserEventKind | undefined {
 	}
 }
 
-function getMainData(memory: WebAssembly.Memory, start: number, def: FrameDef): MainFrame {
+function getMainData(memory: WebAssembly.Memory, start: number, def: InternalFrameDef): MainFrame {
 	const fields = getFields(memory, start, def);
 	start += fieldsByteLen;
 
@@ -186,12 +197,12 @@ function getMainData(memory: WebAssembly.Memory, start: number, def: FrameDef): 
 	};
 }
 
-function getSlowData(memory: WebAssembly.Memory, start: number, def: FrameDef) {
+function getSlowData(memory: WebAssembly.Memory, start: number, def: InternalFrameDef) {
 	const fields = getFields(memory, start, def);
 	return { fields };
 }
 
-function getGpsData(memory: WebAssembly.Memory, start: number, def: FrameDef): GpsFrame {
+function getGpsData(memory: WebAssembly.Memory, start: number, def: InternalFrameDef): GpsFrame {
 	const fields = getFields(memory, start, def);
 	start += fieldsByteLen;
 
@@ -218,26 +229,28 @@ function getDuration(memory: WebAssembly.Memory, start: number): Temporal.Durati
 }
 
 const fieldsByteLen = 8;
-function getFields(memory: WebAssembly.Memory, start: number, def: FrameDef): FrameFields {
+function getFields(memory: WebAssembly.Memory, start: number, def: InternalFrameDef): FrameFields {
 	const [len, ptr] = new Uint32Array(memory.buffer, start, 2);
 
 	if (len === 0 || ptr === 0) {
 		return new Map();
 	}
 
-	if (len !== def.length) {
+	if (len !== def.size) {
 		throw new Error(
-			`frame length (${len}) does not match the definition's length (${def.length})`,
+			`frame length (${len}) does not match the definition's length (${def.size})`,
 		);
 	}
 
 	const unsigned = new Uint32Array(memory.buffer, ptr, len);
 	const signed = new Int32Array(memory.buffer, ptr, len);
 
-	const pairs: Array<[string, number]> = def.map(({ name, signed: isSigned }, i) => [
-		name,
-		(isSigned ? signed : unsigned)[i],
-	]);
+	const fields = new Map();
+	let i = 0;
+	for (const [field, fieldDef] of def) {
+		fields.set(field, (fieldDef.signed ? signed : unsigned)[i]);
+		i += 1;
+	}
 
-	return new Map(pairs);
+	return fields;
 }

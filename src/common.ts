@@ -1,5 +1,6 @@
 export { FirmwareKind, Version } from './headers';
 export { ParseError } from './parser';
+export { Unit } from './units';
 export type {
 	DataParser,
 	ParserEvent,
@@ -11,5 +12,5 @@ export type {
 	Stats,
 } from './data';
 export type { File } from './file';
-export type { Headers, FrameDef, FieldDef } from './headers';
+export type { Headers, FrameDef } from './headers';
 export type { WasmObject } from './wasm';
