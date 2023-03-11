@@ -74,8 +74,7 @@ impl_boxed_wasm_ffi!(WasmFrameDef);
 
 #[repr(C)]
 struct WasmFieldDef {
-    name_len: usize,
-    name_data: *const u8,
+    name: WasmStr,
     signed: bool,
 }
 
@@ -87,8 +86,7 @@ impl<'data, F: FrameDef<'data>> From<&F> for WasmFrameDef {
             let FieldDef { name, signed, .. } = frame.get(i).unwrap();
 
             *out = WasmFieldDef {
-                name_len: name.len(),
-                name_data: name.as_ptr(),
+                name: name.into(),
                 signed,
             };
         }
