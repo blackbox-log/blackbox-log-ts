@@ -2,7 +2,7 @@ import { Temporal } from 'temporal-polyfill';
 import { Memoize as memoize } from 'typescript-memoize';
 
 import { DataParser } from './data';
-import { getWasmSliceStr } from './slice';
+import { getWasmSliceStr, makeGetSlice } from './slice';
 import { getOptionalWasmStr, getWasmStr } from './str';
 import { Unit } from './units';
 import { freezeMap, freezeSet } from './utils';
@@ -172,52 +172,53 @@ export class Headers implements WasmObject {
 
 	@memoize()
 	get unknown(): Map<string, string> {
-		const [len, ptr] = this.#wasm.headers_unknown(this.#ptr.ptr);
-		const map = new Map();
-
-		if (len > 0) {
-			const data = new Uint32Array(this.#wasm.memory.buffer, ptr, len * 4);
-			for (let i = 0; i < len * 4; i += 4) {
-				const key = getWasmStr([data[i], data[i + 1]], this.#wasm);
-				const value = getWasmStr([data[i + 2], data[i + 3]], this.#wasm);
-				map.set(key, value);
-			}
-		}
-
-		this.#wasm.unknownHeaders_free(len, ptr);
+		const slice = this.#wasm.headers_unknown(this.#ptr.ptr);
+		const map = new Map(getUnknownHeaderPairs(slice, this.#wasm));
 		return freezeMap(map);
 	}
 }
 
+const getUnknownHeaderPairs = makeGetSlice<[string, string], Uint32Array>(
+	(buffer, ptr, len) => new Uint32Array(buffer, ptr, len * 4),
+	(data, element, wasm) => {
+		const i = element * 4;
+		const key = getWasmStr([data[i], data[i + 1]], wasm);
+		const value = getWasmStr([data[i + 2], data[i + 3]], wasm);
+		return [key, value];
+	},
+	(wasm, slice) => {
+		wasm.unknownHeaders_free(...slice);
+	},
+);
+
+const fieldDefLength = 3;
+const getFieldDefs = makeGetSlice<
+	[string, { signed: boolean; unit: Unit }],
+	[Uint32Array, Uint8Array]
+>(
+	(buffer, ptr, len) => {
+		const data32 = new Uint32Array(buffer, ptr, len * fieldDefLength);
+		const data8 = new Uint8Array(buffer, ptr, len * fieldDefLength * 4);
+		return [data32, data8];
+	},
+	([data32, data8], field, wasm) => {
+		const start32 = field * fieldDefLength;
+		const name = getWasmStr([data32[start32], data32[start32 + 1]], wasm);
+
+		const start8 = start32 * 4 + 8;
+		const signed = data8[start8] !== 0;
+		const rawUnit = data8[start8 + 1];
+		const unit = rawUnit in Unit ? rawUnit : Unit.Unitless;
+
+		return [name, { signed, unit }];
+	},
+);
+
 function getFrameDef(ptr: number, wasm: WasmExports): InternalFrameDef {
-	const fieldDefLength = 3;
-
 	const [len, fields] = new Uint32Array(wasm.memory.buffer, ptr, 2);
-
-	const def: InternalFrameDef = new Map();
-	if (len !== 0 && fields !== 0) {
-		const data32 = new Uint32Array(wasm.memory.buffer, fields, len * fieldDefLength);
-		const data8 = new Uint8Array(wasm.memory.buffer, fields, len * fieldDefLength * 4);
-
-		for (let field = 0; field < len; field++) {
-			const start32 = field * fieldDefLength;
-
-			const name = getWasmStr([data32[start32], data32[start32 + 1]], wasm);
-
-			const start8 = start32 * 4 + 8;
-			const signed = data8[start8] !== 0;
-			const unit = data8[start8 + 1];
-
-			def.set(name, {
-				unit: unit in Unit ? unit : Unit.Unitless,
-				signed,
-			});
-		}
-	}
-
+	const def: InternalFrameDef = new Map(getFieldDefs([len, fields], wasm));
 	wasm.frameDef_free(ptr);
-
-	return def;
+	return freezeMap(def);
 }
 
 export enum FirmwareKind {
