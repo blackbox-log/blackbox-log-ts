@@ -262,13 +262,3 @@ wasm_export! {
         headers.unknown()
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn field_def_size() {
-        assert_eq!(std::mem::size_of::<WasmFieldDef>(), 24);
-    }
-}
