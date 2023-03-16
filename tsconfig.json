@@ -14,7 +14,6 @@
 		"noUnusedParameters": true,
 		"noImplicitReturns": true,
 		"importsNotUsedAsValues": "error",
-		"skipLibCheck": true,
 		"experimentalDecorators": true,
 		"exactOptionalPropertyTypes": true,
 		"types": ["vite/client"]
