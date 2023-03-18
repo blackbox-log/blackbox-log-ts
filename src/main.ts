@@ -1,7 +1,6 @@
 import encodedWasm from './blackbox-log.wasm?inline';
 import { Parser } from './parser';
-
-import type { WasmExports } from './wasm';
+import { Wasm } from './wasm';
 
 export * from './common';
 
@@ -14,12 +13,13 @@ export class SimpleParser extends Parser {
 			bytes[i] = decoded.charCodeAt(i);
 		}
 
-		const { instance } = await WebAssembly.instantiate(bytes);
-		return new SimpleParser(instance as { exports: WasmExports });
+		const wasmModule = await WebAssembly.compile(bytes);
+		const wasm = await Wasm.init(wasmModule);
+		return new SimpleParser(wasm);
 	}
 
-	private constructor(wasm: WebAssembly.Instance & { exports: WasmExports }) {
-		if (!(wasm instanceof WebAssembly.Instance)) {
+	private constructor(wasm: Wasm) {
+		if (!(wasm instanceof Wasm)) {
 			throw new Error('create a SimpleParser using its init() method, not new');
 		}
 

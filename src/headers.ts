@@ -1,21 +1,18 @@
-import { Temporal } from 'temporal-polyfill';
 import { Memoize as memoize } from 'typescript-memoize';
 
 import { DataParser } from './data';
-import { getWasmSliceStr, makeGetSlice } from './slice';
-import { getOptionalWasmStr, getWasmStr } from './str';
-import { Unit } from './units';
-import { freezeMap, freezeSet } from './utils';
-import { WasmPointer } from './wasm';
 
-import type { WasmExports, WasmObject } from './wasm';
+import type { File } from './file';
+import type { Unit } from './units';
+import type { ManagedPointer, RawPointer, Wasm, WasmObject } from './wasm';
+import type { Temporal } from 'temporal-polyfill';
 
-export type FrameDef = Map<string, { unit: Unit }>;
-export type InternalFrameDef = Map<string, { unit: Unit; signed: boolean }>;
+export type FrameDef = ReadonlyMap<string, { unit: Unit }>;
+export type InternalFrameDef = ReadonlyMap<string, { unit: Unit; signed: boolean }>;
 
 export class Headers implements WasmObject {
-	readonly #wasm: WasmExports;
-	readonly #ptr: WasmPointer;
+	readonly #wasm: Wasm;
+	readonly #ptr: ManagedPointer<Headers>;
 
 	#parsers: Array<WeakRef<DataParser>> = [];
 
@@ -23,10 +20,9 @@ export class Headers implements WasmObject {
 	#slowFrameDef: InternalFrameDef | undefined;
 	#gpsFrameDef: InternalFrameDef | undefined;
 
-	constructor(wasm: WasmExports, file: number, log: number) {
+	constructor(wasm: Wasm, file: RawPointer<File>, log: number) {
 		this.#wasm = wasm;
-		const ptr = this.#wasm.file_getHeaders(file, log);
-		this.#ptr = new WasmPointer(ptr, wasm.headers_free);
+		this.#ptr = wasm.newHeaders(file, log);
 	}
 
 	free() {
@@ -42,13 +38,14 @@ export class Headers implements WasmObject {
 	}
 
 	getDataParser(): DataParser {
-		const ptr = this.#wasm.headers_getDataParser(this.#ptr.ptr);
-
-		const parser = new DataParser(this.#wasm, this, ptr, {
+		const frameDefs = {
 			main: this.#getMainFrameDef(),
 			slow: this.#getSlowFrameDef(),
 			gps: this.#getGpsFrameDef(),
-		});
+		};
+
+		const ptr = this.#wasm.newData(this.#ptr.ptr, frameDefs);
+		const parser = new DataParser(this.#wasm, ptr, this);
 
 		this.#parsers.push(new WeakRef(parser));
 		return parser;
@@ -56,8 +53,7 @@ export class Headers implements WasmObject {
 
 	#getMainFrameDef(): InternalFrameDef {
 		if (this.#mainFrameDef === undefined) {
-			const ptr = this.#wasm.headers_mainDef(this.#ptr.ptr);
-			this.#mainFrameDef = getFrameDef(ptr, this.#wasm);
+			this.#mainFrameDef = this.#wasm.frameDef(this.#ptr.ptr, 'main');
 		}
 
 		return this.#mainFrameDef;
@@ -69,8 +65,7 @@ export class Headers implements WasmObject {
 
 	#getSlowFrameDef(): InternalFrameDef {
 		if (this.#slowFrameDef === undefined) {
-			const ptr = this.#wasm.headers_slowDef(this.#ptr.ptr);
-			this.#slowFrameDef = getFrameDef(ptr, this.#wasm);
+			this.#slowFrameDef = this.#wasm.frameDef(this.#ptr.ptr, 'slow');
 		}
 
 		return this.#slowFrameDef;
@@ -82,8 +77,7 @@ export class Headers implements WasmObject {
 
 	#getGpsFrameDef(): InternalFrameDef {
 		if (this.#gpsFrameDef === undefined) {
-			const ptr = this.#wasm.headers_gpsDef(this.#ptr.ptr);
-			this.#gpsFrameDef = getFrameDef(ptr, this.#wasm);
+			this.#gpsFrameDef = this.#wasm.frameDef(this.#ptr.ptr, 'gps');
 		}
 
 		return this.#gpsFrameDef;
@@ -95,130 +89,58 @@ export class Headers implements WasmObject {
 
 	@memoize()
 	get firmwareRevision(): string {
-		const revision = this.#wasm.headers_firmwareRevision(this.#ptr.ptr);
-		return getWasmStr(revision, this.#wasm);
+		return this.#wasm.strHeader(this.#ptr.ptr, 'firmwareRevision');
 	}
 
 	@memoize()
 	get firmwareKind(): FirmwareKind {
-		const kind = this.#wasm.headers_firmwareKind(this.#ptr.ptr);
-		switch (kind) {
-			case 0:
-				return FirmwareKind.Betaflight;
-			case 1:
-				return FirmwareKind.Inav;
-			default:
-				throw new Error(`invalid FirmwareKind: ${kind}`);
-		}
+		return this.#wasm.firmwareKind(this.#ptr.ptr);
 	}
 
 	@memoize()
 	get firmwareDate(): Temporal.PlainDateTime | string | undefined {
-		const [discriminant, ...rest] = this.#wasm.headers_firmwareDate(this.#ptr.ptr);
-		switch (discriminant) {
-			case 1:
-				return new Temporal.PlainDateTime(...rest);
-			case 2:
-				return getWasmStr([rest[0], rest[1]], this.#wasm);
-			// Only ever 0:
-			default:
-				return undefined;
-		}
+		return this.#wasm.firmwareDate(this.#ptr.ptr);
 	}
 
 	@memoize()
 	get firmwareVersion(): Version {
-		const version = this.#wasm.headers_firmwareVersion(this.#ptr.ptr);
-		return new Version(...version);
+		return this.#wasm.firmwareVersion(this.#ptr.ptr);
 	}
 
 	@memoize()
 	get boardInfo(): string | undefined {
-		const name = this.#wasm.headers_boardInfo(this.#ptr.ptr);
-		return getOptionalWasmStr(name, this.#wasm);
+		return this.#wasm.strOptionHeader(this.#ptr.ptr, 'boardInfo');
 	}
 
 	@memoize()
 	get craftName(): string | undefined {
-		const name = this.#wasm.headers_craftName(this.#ptr.ptr);
-		return getOptionalWasmStr(name, this.#wasm);
+		return this.#wasm.strOptionHeader(this.#ptr.ptr, 'craftName');
 	}
 
 	@memoize()
 	get debugMode(): string {
-		const raw = this.#wasm.headers_debugMode(this.#ptr.ptr);
-		return getWasmStr(raw, this.#wasm);
+		return this.#wasm.strHeader(this.#ptr.ptr, 'debugMode');
 	}
 
 	@memoize()
-	get disabledFields(): Set<string> {
-		const slice = this.#wasm.headers_disabledFields(this.#ptr.ptr);
-		const fields = new Set(getWasmSliceStr(slice, this.#wasm));
-		return freezeSet(fields);
+	get disabledFields(): ReadonlySet<string> {
+		return this.#wasm.strSetHeader(this.#ptr.ptr, 'disabledFields');
 	}
 
 	@memoize()
-	get features(): Set<string> {
-		const slice = this.#wasm.headers_features(this.#ptr.ptr);
-		const fields = new Set(getWasmSliceStr(slice, this.#wasm));
-		return freezeSet(fields);
+	get features(): ReadonlySet<string> {
+		return this.#wasm.strSetHeader(this.#ptr.ptr, 'features');
 	}
 
 	@memoize()
 	get pwmProtocol(): string {
-		const raw = this.#wasm.headers_pwmProtocol(this.#ptr.ptr);
-		return getWasmStr(raw, this.#wasm);
+		return this.#wasm.strHeader(this.#ptr.ptr, 'pwmProtocol');
 	}
 
 	@memoize()
-	get unknown(): Map<string, string> {
-		const slice = this.#wasm.headers_unknown(this.#ptr.ptr);
-		const map = new Map(getUnknownHeaderPairs(slice, this.#wasm));
-		return freezeMap(map);
+	get unknown(): ReadonlyMap<string, string> {
+		return this.#wasm.unknownHeaders(this.#ptr.ptr);
 	}
-}
-
-const getUnknownHeaderPairs = makeGetSlice<[string, string], Uint32Array>(
-	(buffer, ptr, len) => new Uint32Array(buffer, ptr, len * 4),
-	(data, element, wasm) => {
-		const i = element * 4;
-		const key = getWasmStr([data[i], data[i + 1]], wasm);
-		const value = getWasmStr([data[i + 2], data[i + 3]], wasm);
-		return [key, value];
-	},
-	(wasm, slice) => {
-		wasm.unknownHeaders_free(...slice);
-	},
-);
-
-const fieldDefLength = 3;
-const getFieldDefs = makeGetSlice<
-	[string, { signed: boolean; unit: Unit }],
-	[Uint32Array, Uint8Array]
->(
-	(buffer, ptr, len) => {
-		const data32 = new Uint32Array(buffer, ptr, len * fieldDefLength);
-		const data8 = new Uint8Array(buffer, ptr, len * fieldDefLength * 4);
-		return [data32, data8];
-	},
-	([data32, data8], field, wasm) => {
-		const start32 = field * fieldDefLength;
-		const name = getWasmStr([data32[start32], data32[start32 + 1]], wasm);
-
-		const start8 = start32 * 4 + 8;
-		const signed = data8[start8] !== 0;
-		const rawUnit = data8[start8 + 1];
-		const unit = rawUnit in Unit ? rawUnit : Unit.Unitless;
-
-		return [name, { signed, unit }];
-	},
-);
-
-function getFrameDef(ptr: number, wasm: WasmExports): InternalFrameDef {
-	const [len, fields] = new Uint32Array(wasm.memory.buffer, ptr, 2);
-	const def: InternalFrameDef = new Map(getFieldDefs([len, fields], wasm));
-	wasm.frameDef_free(ptr);
-	return freezeMap(def);
 }
 
 export enum FirmwareKind {
