@@ -6,7 +6,8 @@ use blackbox_log::frame::{Frame, GpsFrame, MainFrame, SlowFrame};
 use blackbox_log::prelude::*;
 use blackbox_log::Reader;
 
-use crate::{OwnedSlice, Shared};
+use crate::headers::WasmHeaders;
+use crate::{IntoWasmFfi, OwnedSlice, Shared, WasmByValue, WasmFfi};
 
 // SAFETY: field order *must* be `parser` first, then `headers`, then `data` to
 // ensure correct drop order
@@ -272,10 +273,26 @@ impl WasmDuration {
     }
 }
 
+#[repr(C)]
+struct DataNew(
+    <Box<WasmDataParser> as WasmFfi>::Ffi,
+    <*const WasmParseEvent as WasmFfi>::Ffi,
+);
+
+// SAFETY: repr(C) & where bounds for each field
+unsafe impl WasmByValue for DataNew
+where
+    <Box<WasmDataParser> as WasmFfi>::Ffi: WasmByValue,
+    <*const WasmParseEvent as WasmFfi>::Ffi: WasmByValue,
+{
+}
+
 wasm_export!(free data_free: Box<WasmDataParser>);
 wasm_export! {
-    fn data_resultPtr(parser: ref Box<WasmDataParser>) -> *const WasmParseEvent {
-        parser.result_ptr()
+    fn data_new(headers: ref Box<WasmHeaders>) -> DataNew {
+        let data = Box::new(headers.get_data_parser());
+        let result = data.result_ptr();
+        DataNew(data.into_ffi(),result.into_ffi())
     }
 
     fn data_counts(parser: ref Box<WasmDataParser>) -> [usize; 5] {

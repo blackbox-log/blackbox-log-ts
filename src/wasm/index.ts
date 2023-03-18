@@ -37,7 +37,6 @@ export type WasmExports = {
 	file_getLog: (ptr: number, log: number) => number;
 
 	headers_free: (ptr: number) => void;
-	headers_getDataParser: (ptr: number) => number;
 	headers_mainDef: (ptr: number) => number;
 	headers_slowDef: (ptr: number) => number;
 	headers_gpsDef: (ptr: number) => number;
@@ -57,7 +56,7 @@ export type WasmExports = {
 	unknownHeaders_free: (length: number, ptr: number) => void;
 
 	data_free: (ptr: number) => void;
-	data_resultPtr: (ptr: number) => number;
+	data_new: (headers: number) => [dataParserPtr: number, parserEventPtr: number];
 	data_counts: (ptr: number) => [number, number, number, number, number];
 	data_next: (ptr: RawPointer<DataParser>) => void;
 };
@@ -219,12 +218,13 @@ export class Wasm {
 		headers: RawPointer<Headers>,
 		frameDefs: { main: InternalFrameDef; slow: InternalFrameDef; gps: InternalFrameDef },
 	): ManagedPointer<DataParser> {
-		const dataPtr = this.#wasm.headers_getDataParser(headers) as RawPointer<DataParser>;
+		const [data, eventPtr] = this.#wasm.data_new(headers) as [
+			RawPointer<DataParser>,
+			RawPointer<ParserEvent>,
+		];
 
-		const eventPtr = this.#wasm.data_resultPtr(dataPtr) as RawPointer<ParserEvent>;
-		this.#dataParserInfo.set(dataPtr, { ...frameDefs, eventPtr });
-
-		return new ManagedPointer(dataPtr, this.#wasm.data_free);
+		this.#dataParserInfo.set(data, { ...frameDefs, eventPtr });
+		return new ManagedPointer(data, this.#wasm.data_free);
 	}
 
 	dataStats(data: RawPointer<DataParser>): Stats {

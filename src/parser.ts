@@ -9,7 +9,7 @@ export class Parser {
 		return new Parser(wasm);
 	}
 
-	readonly #wasm: Wasm;
+	readonly #wasm;
 
 	constructor(wasm: Wasm) {
 		this.#wasm = wasm;

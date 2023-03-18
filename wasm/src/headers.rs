@@ -31,7 +31,7 @@ impl WasmHeaders {
         }
     }
 
-    fn get_data_parser(&self) -> WasmDataParser {
+    pub fn get_data_parser(&self) -> WasmDataParser {
         WasmDataParser::new(
             Shared::clone(&self.headers),
             self.reader.clone(),
@@ -194,10 +194,6 @@ wasm_export!(free headers_free: Box<WasmHeaders>);
 wasm_export!(free frameDef_free: Box<WasmFrameDef>);
 wasm_export!(free unknownHeaders_free: OwnedSlice<UnknownHeader>);
 wasm_export! {
-    fn headers_getDataParser(headers: ref Box<WasmHeaders>) -> Box<WasmDataParser> {
-        Box::new(headers.get_data_parser())
-    }
-
     fn headers_mainDef(headers: ref Box<WasmHeaders>) -> Box<WasmFrameDef> {
         Box::new(headers.main_def())
     }
