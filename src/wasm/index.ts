@@ -270,7 +270,8 @@ export class Wasm {
 			return;
 		}
 
-		const dataStart = eventPtr + 4;
+		const dataAlignment = 8;
+		const dataStart = eventPtr + dataAlignment;
 
 		switch (kind) {
 			case ParserEventKind.Event:

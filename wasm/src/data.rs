@@ -4,6 +4,7 @@ use std::pin::Pin;
 use blackbox_log::data::FrameCounts;
 use blackbox_log::frame::{Frame, GpsFrame, MainFrame, SlowFrame};
 use blackbox_log::prelude::*;
+use blackbox_log::units::{si, Time};
 use blackbox_log::Reader;
 
 use crate::headers::WasmHeaders;
@@ -100,8 +101,8 @@ impl_structural! {
 impl_structural! {
     #[repr(C)]
     struct DataMain {
+        time: f64,
         fields: Fields,
-        time: WasmDuration,
     }
 
     #[repr(C)]
@@ -111,20 +112,8 @@ impl_structural! {
 
     #[repr(C)]
     struct DataGps {
+        time: f64,
         fields: Fields,
-        time: WasmDuration,
-    }
-}
-
-impl_structural! {
-    #[repr(C)]
-    #[derive(Debug, Clone, Copy, Default)]
-    struct WasmDuration {
-        microseconds: u16,
-        milliseconds: u16,
-        seconds: u8,
-        minutes: u8,
-        hours: u8,
     }
 }
 
@@ -189,13 +178,15 @@ impl From<Option<ParserEvent<'_, '_, '_>>> for WasmParseEvent {
     }
 }
 
+fn get_time(time: Time) -> f64 {
+    time.get::<si::time::second>()
+}
+
 impl From<MainFrame<'_, '_, '_>> for DataMain {
     fn from(frame: MainFrame) -> Self {
-        let time = WasmDuration::from_microseconds(frame.time_raw());
-
         Self {
+            time: get_time(frame.time()),
             fields: Fields::from(frame),
-            time,
         }
     }
 }
@@ -210,11 +201,9 @@ impl From<SlowFrame<'_, '_, '_>> for DataSlow {
 
 impl From<GpsFrame<'_, '_, '_>> for DataGps {
     fn from(frame: GpsFrame) -> Self {
-        let time = WasmDuration::from_microseconds(frame.time_raw());
-
         Self {
+            time: get_time(frame.time()),
             fields: Fields::from(frame),
-            time,
         }
     }
 }
@@ -228,48 +217,6 @@ impl<F: Frame> From<F> for Fields {
         }
 
         Self(slice)
-    }
-}
-
-impl WasmDuration {
-    fn from_microseconds(us: u64) -> Self {
-        const US_PER_MS: u64 = 1000;
-        const MS_PER_SEC: u64 = 1000;
-        const SEC_PER_MIN: u64 = 60;
-        const MIN_PER_HOUR: u64 = 60;
-
-        #[allow(clippy::cast_possible_truncation)]
-        let new = |hours, min, sec, ms, us| Self {
-            microseconds: us as u16,
-            milliseconds: ms as u16,
-            seconds: sec as u8,
-            minutes: min as u8,
-            hours: hours as u8,
-        };
-
-        let ms = us / US_PER_MS;
-        let sec = ms / MS_PER_SEC;
-        let min = sec / SEC_PER_MIN;
-        let hours = min / MIN_PER_HOUR;
-
-        // Saturate at the full 10hr 16min max...
-        if hours > u8::MAX.into() {
-            return new(
-                u8::MAX.into(),
-                MIN_PER_HOUR - 1,
-                SEC_PER_MIN - 1,
-                MS_PER_SEC - 1,
-                US_PER_MS - 1,
-            );
-        }
-
-        new(
-            hours,
-            min % MIN_PER_HOUR,
-            sec % SEC_PER_MIN,
-            ms % MS_PER_SEC,
-            us % US_PER_MS,
-        )
     }
 }
 

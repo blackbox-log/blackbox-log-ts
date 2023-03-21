@@ -1,6 +1,5 @@
 import type { Headers } from './headers';
 import type { ManagedPointer, Wasm, WasmObject } from './wasm';
-import type { Temporal } from 'temporal-polyfill';
 
 export type ParserEvent =
 	| { kind: ParserEventKind.Event; data: undefined }
@@ -18,7 +17,7 @@ export enum ParserEventKind {
 export type FrameFields = ReadonlyMap<string, number>;
 
 export type MainFrame = {
-	time: Temporal.Duration;
+	time: number;
 	fields: FrameFields;
 };
 
@@ -27,7 +26,7 @@ export type SlowFrame = {
 };
 
 export type GpsFrame = {
-	time: Temporal.Duration;
+	time: number;
 	fields: FrameFields;
 };
 

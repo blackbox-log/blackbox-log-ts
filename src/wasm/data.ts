@@ -1,5 +1,3 @@
-import { Temporal } from 'temporal-polyfill';
-
 import { ParserEventKind } from '../data';
 
 import type { FrameFields, GpsFrame, MainFrame, SlowFrame } from '../data';
@@ -29,14 +27,9 @@ export function getMainData(
 	start: number,
 	def: InternalFrameDef,
 ): MainFrame {
-	const fields = getFields(memory, start, def);
-	start += fieldsByteLen;
-
-	const time = getDuration(memory, start);
-
 	return {
-		time,
-		fields,
+		time: getTime(memory, start),
+		fields: getFields(memory, start + 8, def),
 	};
 }
 
@@ -54,32 +47,17 @@ export function getGpsData(
 	start: number,
 	def: InternalFrameDef,
 ): GpsFrame {
-	const fields = getFields(memory, start, def);
-	start += fieldsByteLen;
-
 	return {
-		time: getDuration(memory, start + 4),
-		fields,
+		time: getTime(memory, start),
+		fields: getFields(memory, start + 8, def),
 	};
 }
 
-function getDuration(memory: WebAssembly.Memory, start: number): Temporal.Duration {
-	const u16s = new Uint16Array(memory.buffer, start, 2);
-	const [microseconds, milliseconds] = u16s;
-
-	const u8s = new Uint8Array(memory.buffer, start + 4, 3);
-	const [seconds, minutes, hours] = u8s;
-
-	return Temporal.Duration.from({
-		microseconds,
-		milliseconds,
-		seconds,
-		minutes,
-		hours,
-	});
+function getTime(memory: WebAssembly.Memory, start: number): number {
+	const f64s = new Float64Array(memory.buffer, start, 1);
+	return f64s[0];
 }
 
-const fieldsByteLen = 8;
 function getFields(memory: WebAssembly.Memory, start: number, def: InternalFrameDef): FrameFields {
 	const [len, ptr] = new Uint32Array(memory.buffer, start, 2);
 
