@@ -3,10 +3,10 @@ import type { ManagedPointer, Wasm, WasmObject } from './wasm';
 import type { Temporal } from 'temporal-polyfill';
 
 export type ParserEvent =
-	| { readonly kind: ParserEventKind.Event; readonly data: undefined }
-	| { readonly kind: ParserEventKind.MainFrame; readonly data: MainFrame }
-	| { readonly kind: ParserEventKind.SlowFrame; readonly data: SlowFrame }
-	| { readonly kind: ParserEventKind.GpsFrame; readonly data: GpsFrame };
+	| { kind: ParserEventKind.Event; data: undefined }
+	| { kind: ParserEventKind.MainFrame; data: MainFrame }
+	| { kind: ParserEventKind.SlowFrame; data: SlowFrame }
+	| { kind: ParserEventKind.GpsFrame; data: GpsFrame };
 
 export enum ParserEventKind {
 	Event = 'event',
@@ -18,26 +18,26 @@ export enum ParserEventKind {
 export type FrameFields = ReadonlyMap<string, number>;
 
 export type MainFrame = {
-	readonly time: Temporal.Duration;
-	readonly fields: FrameFields;
+	time: Temporal.Duration;
+	fields: FrameFields;
 };
 
 export type SlowFrame = {
-	readonly fields: FrameFields;
+	fields: FrameFields;
 };
 
 export type GpsFrame = {
-	readonly time: Temporal.Duration;
-	readonly fields: FrameFields;
+	time: Temporal.Duration;
+	fields: FrameFields;
 };
 
 export type Stats = {
-	readonly counts: {
-		readonly event: number;
-		readonly main: number;
-		readonly slow: number;
-		readonly gps: number;
-		readonly gpsHome: number;
+	counts: {
+		event: number;
+		main: number;
+		slow: number;
+		gps: number;
+		gpsHome: number;
 	};
 };
 
@@ -65,7 +65,7 @@ export class DataParser implements WasmObject, IterableIterator<ParserEvent> {
 		return this.#headers;
 	}
 
-	stats(): Stats {
+	stats(): Readonly<Stats> {
 		return this.#wasm.dataStats(this.#ptr.ptr);
 	}
 
@@ -77,7 +77,7 @@ export class DataParser implements WasmObject, IterableIterator<ParserEvent> {
 		return this.#done;
 	}
 
-	next(): IteratorResult<ParserEvent> {
+	next(): IteratorResult<Readonly<ParserEvent>> {
 		if (this.#done) {
 			return { done: true, value: undefined };
 		}

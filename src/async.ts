@@ -184,7 +184,7 @@ export class AsyncDataParser
 		return this.#headers;
 	}
 
-	async stats(): Promise<Stats> {
+	async stats(): Promise<Readonly<Stats>> {
 		return this.#wasm.dataStats(this.#id);
 	}
 
@@ -196,7 +196,7 @@ export class AsyncDataParser
 		return this.#done;
 	}
 
-	async next(): Promise<IteratorResult<ParserEvent>> {
+	async next(): Promise<IteratorResult<Readonly<ParserEvent>>> {
 		if (this.#done) {
 			return { done: true, value: undefined };
 		}
