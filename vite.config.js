@@ -46,6 +46,8 @@ export default defineConfig({
 				reloadPageOnChange: true,
 			},
 		}),
-		dts(),
+		dts({
+			rollupTypes: true,
+		}),
 	],
 });
