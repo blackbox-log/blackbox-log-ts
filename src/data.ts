@@ -41,7 +41,7 @@ export type Stats = {
 	};
 };
 
-export class DataParser implements WasmObject, Iterable<ParserEvent>, Iterator<ParserEvent> {
+export class DataParser implements WasmObject, IterableIterator<ParserEvent> {
 	readonly #wasm: Wasm;
 	readonly #ptr: ManagedPointer<DataParser>;
 	readonly #headers: Headers;
@@ -79,25 +79,16 @@ export class DataParser implements WasmObject, Iterable<ParserEvent>, Iterator<P
 
 	next(): IteratorResult<ParserEvent> {
 		if (this.#done) {
-			return {
-				done: true,
-				value: undefined,
-			};
+			return { done: true, value: undefined };
 		}
 
-		const event = this.#wasm.dataNext(this.#ptr.ptr);
+		const value = this.#wasm.dataNext(this.#ptr.ptr);
 
-		if (event === undefined) {
+		if (value === undefined) {
 			this.#done = true;
-			return {
-				done: true,
-				value: undefined,
-			};
+			return { done: true, value: undefined };
 		}
 
-		return {
-			done: false,
-			value: event,
-		};
+		return { done: false, value };
 	}
 }

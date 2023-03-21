@@ -58,12 +58,10 @@
 		</p>
 
 		<script async type="module">
-			// import { Parser } from './src/main.ts';
-			// const parser = await Parser.init();
-
-			import { Parser } from './src/slim.ts';
+			import { AsyncParser } from './src/async.ts';
 			import wasm from './src/blackbox-log.wasm?url';
-			const parser = await Parser.init(wasm);
+			import worker from './src/worker.ts?url';
+			const parser = new AsyncParser(wasm, worker);
 
 			let file;
 
@@ -77,11 +75,12 @@
 
 				const buffer = await upload.files[0].arrayBuffer();
 				const view = new Uint8Array(buffer);
-				file = parser.loadFile(view);
+				file = await parser.loadFile(view);
 
-				logNum.value = file.logCount > 0 ? 1 : undefined;
-				logNum.max = file.logCount;
-				document.querySelector('#log-count').innerText = file.logCount;
+				const logCount = await file.logCount;
+				logNum.value = logCount > 0 ? 1 : undefined;
+				logNum.max = logCount;
+				document.querySelector('#log-count').innerText = logCount;
 				logHandler();
 			}
 
@@ -92,8 +91,8 @@
 				fileHandler();
 			}
 
-			let animationHandle;
-			function logHandler() {
+			let parseHandle;
+			async function logHandler() {
 				const { value } = logNum;
 				const logInfo = document.querySelector('#log-info');
 
@@ -107,55 +106,53 @@
 				logNum.disabled = false;
 				logInfo.classList.remove('hidden');
 
-				const headers = file.parseHeaders(value - 1);
-				document.querySelector('#firmware-revision').innerText = headers.firmwareRevision;
-				document.querySelector('#firmware-kind').innerText = headers.firmwareKind;
+				const headers = await file.parseHeaders(value - 1);
+				document.querySelector('#firmware-revision').innerText =
+					await headers.firmwareRevision;
+				document.querySelector('#firmware-kind').innerText = await headers.firmwareKind;
 				document.querySelector('#firmware-date').innerText =
-					headers.firmwareDate?.toString() ?? '';
-				document.querySelector('#firmware-version').innerText = headers.firmwareVersion;
-				document.querySelector('#board-info').innerText = headers.boardInfo ?? '';
-				document.querySelector('#craft-name').innerText = headers.craftName ?? '';
-				document.querySelector('#debug-mode').innerText = headers.debugMode;
+					(await headers.firmwareDate)?.toString() ?? '';
+				document.querySelector('#firmware-version').innerText =
+					await headers.firmwareVersion;
+				document.querySelector('#board-info').innerText = (await headers.boardInfo) ?? '';
+				document.querySelector('#craft-name').innerText = (await headers.craftName) ?? '';
+				document.querySelector('#debug-mode').innerText = await headers.debugMode;
 				document.querySelector('#disabled-fields').innerText = Array.from(
-					headers.disabledFields,
+					await headers.disabledFields,
 				).join(', ');
-				document.querySelector('#features').innerText = Array.from(headers.features).join(
-					', ',
-				);
-				document.querySelector('#pwm-protocol').innerText = headers.pwmProtocol;
-				document.querySelector('#unknown-count').innerText = headers.unknown.size;
-				console.log('unknown headers:', headers.unknown);
+				document.querySelector('#features').innerText = Array.from(
+					await headers.features,
+				).join(', ');
+				document.querySelector('#pwm-protocol').innerText = await headers.pwmProtocol;
+
+				const unknown = await headers.unknown;
+				document.querySelector('#unknown-count').innerText = unknown.size;
+				console.log('unknown headers:', unknown);
+
 				updateMemory();
 
-				if (animationHandle !== undefined) {
-					window.cancelAnimationFrame(animationHandle);
-					animationHandle = undefined;
-				}
-
-				const dataParser = headers.getDataParser();
+				const dataParser = await headers.getDataParser();
 				updateCounts(dataParser);
 				updateMemory();
 
-				const animation = () => {
-					if (dataParser.done) {
-						animationHandle = undefined;
-						return;
+				const currentParseHandle = (parseHandle = Symbol());
+				let i = 0;
+				for await (const _ of dataParser) {
+					if (currentParseHandle !== parseHandle) {
+						break;
 					}
 
-					for (let i = 0; i < 2000; i++) {
-						dataParser.next();
+					i = (i + 1) % 100;
+					if (i === 0) {
+						updateCounts(dataParser);
 					}
-
-					updateCounts(dataParser);
-					updateMemory();
-
-					animationHandle = window.requestAnimationFrame(animation);
-				};
-				animationHandle = window.requestAnimationFrame(animation);
+				}
+				updateCounts(dataParser);
+				updateMemory();
 			}
 
-			function updateCounts(parser) {
-				const { counts } = parser.stats();
+			async function updateCounts(parser) {
+				const { counts } = await parser.stats();
 				document.querySelector('#event-count').innerText = counts.event;
 				document.querySelector('#main-count').innerText = counts.main;
 				document.querySelector('#slow-count').innerText = counts.slow;
@@ -163,9 +160,9 @@
 				document.querySelector('#gps-home-count').innerText = counts.gpsHome;
 			}
 
-			function updateMemory() {
+			async function updateMemory() {
 				if (file) {
-					const mib = Math.round((file.memorySize / 1024 / 1024) * 100) / 100;
+					const mib = Math.round(((await file.memorySize) / 1024 / 1024) * 100) / 100;
 					memory.innerText = `${mib} MiB`;
 				}
 			}

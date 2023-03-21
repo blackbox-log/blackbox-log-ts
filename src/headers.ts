@@ -38,13 +38,7 @@ export class Headers implements WasmObject {
 	}
 
 	getDataParser(): DataParser {
-		const frameDefs = {
-			main: this.#getMainFrameDef(),
-			slow: this.#getSlowFrameDef(),
-			gps: this.#getGpsFrameDef(),
-		};
-
-		const ptr = this.#wasm.newData(this.#ptr.ptr, frameDefs);
+		const ptr = this.#wasm.newData(this.#ptr.ptr);
 		const parser = new DataParser(this.#wasm, ptr, this);
 
 		this.#parsers.push(new WeakRef(parser));

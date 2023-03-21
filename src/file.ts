@@ -29,21 +29,21 @@ export class File implements WasmObject {
 		return this.#wasm.logCount(this.#ptr.ptr);
 	}
 
-	parseHeaders(index: number): Headers | undefined {
-		if (index >= this.logCount) {
-			return undefined;
+	parseHeaders(log: number): Headers | undefined {
+		if (log >= this.logCount) {
+			return;
 		}
 
-		if (index in this.#headers && this.#headers[index].deref()?.isAlive) {
-			return this.#headers[index].deref();
+		if (log in this.#headers && this.#headers[log].deref()?.isAlive) {
+			return this.#headers[log].deref();
 		}
 
-		const headers = new Headers(this.#wasm, this.#ptr.ptr, index);
-		this.#headers[index] = new WeakRef(headers);
+		const headers = new Headers(this.#wasm, this.#ptr.ptr, log);
+		this.#headers[log] = new WeakRef(headers);
 		return headers;
 	}
 
 	get memorySize(): number {
-		return this.#wasm.memorySize;
+		return this.#wasm.memorySize();
 	}
 }

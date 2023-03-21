@@ -17,3 +17,5 @@ export function freezeMap<K, V>(map: Map<K, V>): ReadonlyMap<K, V> {
 	map.clear = noopClear;
 	return Object.freeze(map);
 }
+
+export type Values<T> = T[keyof T];

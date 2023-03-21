@@ -16,9 +16,12 @@ dev *args='':
     pnpm vite {{ args }}
 
 # Check types and build for production
-build:
+build: && build-worker
     pnpm tsc
     pnpm vite build
+
+build-worker:
+    pnpm vite --config vite.worker.config.js build
 
 # Remove build artifacts
 clean:

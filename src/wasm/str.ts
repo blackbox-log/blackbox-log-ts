@@ -33,7 +33,7 @@ export function getStr([len, ptr]: WasmStr, wasm: WasmExports): string {
 
 export function getOptionalStr([len, ptr]: OptionalWasmStr, wasm: WasmExports): string | undefined {
 	if (ptr === 0) {
-		return undefined;
+		return;
 	}
 
 	return getStr([len, ptr] as WasmStr, wasm);

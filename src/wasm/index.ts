@@ -61,11 +61,16 @@ export type WasmExports = {
 	data_next: (ptr: RawPointer<DataParser>) => void;
 };
 
-type DataParseInfo = Record<'main' | 'slow' | 'gps', InternalFrameDef> & {
+type FrameDef = 'main' | 'slow' | 'gps';
+type CachedFrameDefs = Partial<Record<FrameDef, InternalFrameDef>>;
+type DataParseInfo = Record<FrameDef, InternalFrameDef> & {
 	eventPtr: RawPointer<ParserEvent>;
 };
 
 export type WasmInit = string | URL | Request | Response | WebAssembly.Module;
+
+declare const dataParserId: unique symbol;
+export type DataParserId = number & { [dataParserId]: true };
 
 export class Wasm {
 	static async init(init: WasmInit): Promise<Wasm> {
@@ -107,6 +112,7 @@ export class Wasm {
 	}
 
 	readonly #wasm;
+	#frameDefs = new Map<RawPointer<Headers>, CachedFrameDefs>();
 	#dataParserInfo = new Map<RawPointer<DataParser>, DataParseInfo>();
 
 	private constructor(wasm: WasmExports) {
@@ -114,7 +120,7 @@ export class Wasm {
 		this.#wasm = wasm;
 	}
 
-	get memorySize(): number {
+	memorySize(): number {
 		return this.#wasm.memory.buffer.byteLength;
 	}
 
@@ -137,20 +143,38 @@ export class Wasm {
 
 	newHeaders(file: RawPointer<File>, log: number): ManagedPointer<Headers> {
 		const ptr = this.#wasm.file_getHeaders(file, log) as RawPointer<Headers>;
-		return new ManagedPointer(ptr, this.#wasm.headers_free);
+		this.#frameDefs.set(ptr, {});
+		return new ManagedPointer(ptr, this.freeHeaders.bind(this));
 	}
 
-	frameDef(headers: RawPointer<Headers>, frame: 'main' | 'slow' | 'gps'): InternalFrameDef {
+	freeHeaders(headers: RawPointer<Headers>) {
+		this.#frameDefs.delete(headers);
+		this.#wasm.headers_free(headers);
+	}
+
+	frameDef(headers: RawPointer<Headers>, frame: FrameDef): InternalFrameDef {
+		// Was initialized in `newHeaders`
+		const cache = this.#frameDefs.get(headers)!;
+		const cachedDef = cache[frame];
+
+		if (cachedDef !== undefined) {
+			return cachedDef;
+		}
+
 		const ptr = this.#wasm[`headers_${frame}Def`](headers);
 		const [len, fields] = this.#uint32Array(ptr, 2);
-		const def = new Map(
-			HeadersParsers.getFieldDefs(
-				[len, fields] as WasmSlice<[string, HeadersParsers.FieldDef]>,
-				this.#wasm,
+		const def = freezeMap(
+			new Map(
+				HeadersParsers.getFieldDefs(
+					[len, fields] as WasmSlice<[string, HeadersParsers.FieldDef]>,
+					this.#wasm,
+				),
 			),
 		);
 		this.#wasm.frameDef_free(ptr);
-		return freezeMap(def);
+
+		cache[frame] = def;
+		return def;
 	}
 
 	strHeader(
@@ -214,16 +238,17 @@ export class Wasm {
 		return freezeMap(map);
 	}
 
-	newData(
-		headers: RawPointer<Headers>,
-		frameDefs: { main: InternalFrameDef; slow: InternalFrameDef; gps: InternalFrameDef },
-	): ManagedPointer<DataParser> {
+	newData(headers: RawPointer<Headers>): ManagedPointer<DataParser> {
+		const main = this.frameDef(headers, 'main');
+		const slow = this.frameDef(headers, 'slow');
+		const gps = this.frameDef(headers, 'gps');
+
 		const [data, eventPtr] = this.#wasm.data_new(headers) as [
 			RawPointer<DataParser>,
 			RawPointer<ParserEvent>,
 		];
 
-		this.#dataParserInfo.set(data, { ...frameDefs, eventPtr });
+		this.#dataParserInfo.set(data, { main, slow, gps, eventPtr });
 		return new ManagedPointer(data, this.#wasm.data_free);
 	}
 

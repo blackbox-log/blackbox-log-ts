@@ -18,9 +18,16 @@
 			"require": "./dist/slim.cjs",
 			"types": "./dist/slim.d.ts"
 		},
-		"./wasm": "./dist/blackbox-log.wasm"
+		"./async": {
+			"import": "./dist/async.js",
+			"require": "./dist/async.cjs",
+			"types": "./dist/async.d.ts"
+		},
+		"./wasm": "./dist/blackbox-log.wasm",
+		"./worker": "./dist/worker.js"
 	},
 	"dependencies": {
+		"comlink": "^4.4.1",
 		"temporal-polyfill": "^0.1.0",
 		"typescript-memoize": "^1.1.1"
 	},
@@ -34,6 +41,7 @@
 		"eslint-import-resolver-typescript": "^3.5.2",
 		"eslint-plugin-import": "^2.26.0",
 		"eslint-plugin-prettier": "^4.2.1",
+		"module-workers-polyfill": "^0.3.2",
 		"prettier": "^2.8.1",
 		"typescript": "^5.0.0",
 		"vite": "^4.0.0",
