@@ -4,7 +4,7 @@
 		"module": "esnext",
 		"useDefineForClassFields": true,
 		"lib": ["esnext", "dom"],
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"strict": true,
 		"resolveJsonModule": true,
 		"verbatimModuleSyntax": true,
