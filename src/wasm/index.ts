@@ -67,7 +67,14 @@ type DataParseInfo = Record<FrameDef, InternalFrameDef> & {
 	eventPtr: RawPointer<ParserEvent>;
 };
 
-export type WasmInit = string | URL | Request | Response | WebAssembly.Module;
+export type WasmInit =
+	| string
+	| URL
+	| Request
+	| Response
+	| PromiseLike<Response>
+	| WebAssembly.Module
+	| PromiseLike<WebAssembly.Module>;
 
 declare const dataParserId: unique symbol;
 export type DataParserId = number & { [dataParserId]: true };
@@ -99,6 +106,7 @@ export class Wasm {
 			},
 		};
 
+		init = await init;
 		if (init instanceof WebAssembly.Module) {
 			instance = new WebAssembly.Instance(init, imports);
 		} else {

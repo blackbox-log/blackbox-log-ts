@@ -25,7 +25,7 @@ export class AsyncParser implements Methods<Parser> {
 	readonly #worker;
 
 	constructor(wasm: WasmInit, worker: URL | string) {
-		this.#wasm = wasm;
+		this.#wasm = resolveWasm(wasm);
 		this.#worker = worker;
 	}
 
@@ -37,10 +37,27 @@ export class AsyncParser implements Methods<Parser> {
 
 		const worker = new Worker(this.#worker, options);
 		const wrapped = Comlink.wrap<AsyncWasm>(worker);
-		await wrapped.init(this.#wasm, Comlink.transfer(data, [data.buffer]));
+
+		const wasm = await this.#wasm;
+		await wrapped.init(wasm, Comlink.transfer(data, [data.buffer]));
 
 		return new AsyncFile(wrapped);
 	}
+}
+
+async function resolveWasm(init: WasmInit): Promise<string | URL | WebAssembly.Module> {
+	init = await init;
+
+	if (init instanceof URL) {
+		return init.toString();
+	}
+
+	if (typeof init === 'string' || init instanceof WebAssembly.Module) {
+		return init;
+	}
+
+	const response = init instanceof Request ? fetch(init) : init;
+	return WebAssembly.compileStreaming(response);
 }
 
 export class AsyncFile implements Methods<File, keyof WasmObject> {
