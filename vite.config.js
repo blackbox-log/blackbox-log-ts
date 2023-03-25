@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { readFile } from 'node:fs/promises';
 import { defineConfig } from 'vite';
 import { viteStaticCopy as staticCopy } from 'vite-plugin-static-copy';
 import dts from 'vite-plugin-dts';
@@ -10,12 +10,8 @@ export default defineConfig({
 	build: {
 		lib: {
 			entry: ['src/main.ts', 'src/slim.ts', 'src/async.ts'],
-			name: 'BlackboxLog',
-			formats: ['es', 'cjs'],
-			fileName: (format, entry) => {
-				const ext = format == 'cjs' ? 'cjs' : 'js';
-				return `${entry}.${ext}`;
-			},
+			formats: ['es'],
+			fileName: (_format, entry) => `${entry}.js`,
 		},
 		target,
 		sourcemap: true,
@@ -27,7 +23,7 @@ export default defineConfig({
 				if (!id.endsWith('.wasm?inline')) return;
 
 				const path = id.replace('?inline', '');
-				const wasm = await fs.promises.readFile(path, { encoding: 'base64' });
+				const wasm = await readFile(path, { encoding: 'base64' });
 
 				return {
 					code: `export default '${wasm}'`,

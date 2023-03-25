@@ -10,17 +10,14 @@
 	"exports": {
 		".": {
 			"import": "./dist/main.js",
-			"require": "./dist/main.cjs",
 			"types": "./dist/main.d.ts"
 		},
 		"./slim": {
 			"import": "./dist/slim.js",
-			"require": "./dist/slim.cjs",
 			"types": "./dist/slim.d.ts"
 		},
 		"./async": {
 			"import": "./dist/async.js",
-			"require": "./dist/async.cjs",
 			"types": "./dist/async.d.ts"
 		},
 		"./wasm": "./dist/blackbox-log.wasm",
