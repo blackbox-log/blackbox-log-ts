@@ -4,7 +4,15 @@ import { viteStaticCopy as staticCopy } from 'vite-plugin-static-copy';
 import dts from 'vite-plugin-dts';
 
 // Vite default + wasm sign-extension, multi-value, and bulk memory
-export const target = ['es2020', 'firefox79', 'safari15', 'chrome87', 'edge88'];
+export const target = [
+	'es2020',
+	'firefox79',
+	'safari15',
+	'chrome87',
+	'edge88',
+	'node18',
+	'deno1.3.2',
+];
 
 export default defineConfig({
 	build: {
