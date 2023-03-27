@@ -109,7 +109,8 @@
 					await headers.firmwareRevision;
 				document.querySelector('#firmware-kind').innerText = await headers.firmwareKind;
 				document.querySelector('#firmware-date').innerText =
-					(await headers.firmwareDate)?.toString() ?? '';
+					(await headers.firmwareDate)?.toLocaleString() ?? '';
+				console.log(await headers.firmwareDate);
 				document.querySelector('#firmware-version').innerText =
 					await headers.firmwareVersion;
 				document.querySelector('#board-info').innerText = (await headers.boardInfo) ?? '';

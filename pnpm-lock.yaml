@@ -13,7 +13,6 @@ specifiers:
   eslint-plugin-prettier: ^4.2.1
   module-workers-polyfill: ^0.3.2
   prettier: ^2.8.1
-  temporal-polyfill: ^0.1.0
   typescript: ^5.0.0
   typescript-memoize: ^1.1.1
   vite: ^4.0.0
@@ -22,7 +21,6 @@ specifiers:
 
 dependencies:
   comlink: 4.4.1
-  temporal-polyfill: 0.1.1
   typescript-memoize: 1.1.1
 
 devDependencies:
@@ -2204,16 +2202,6 @@ packages:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
     engines: {node: '>=6'}
     dev: true
-
-  /temporal-polyfill/0.1.1:
-    resolution: {integrity: sha512-/5e4EVRA0wBI/bEhWLirSjwUg1lELhQyTXxw9zNbVhqjKvI9BLczs+3wtsoD9sn3HN2ImAMW5XJQwAiXgWT+GA==}
-    dependencies:
-      temporal-spec: 0.1.0
-    dev: false
-
-  /temporal-spec/0.1.0:
-    resolution: {integrity: sha512-sMNggMeS6trCgMQuudgFHhX1gtBK3e+AT1zGrMsFYG1wlqtRT5E9rcvm3I1iNlvHpJX/3DO6L4qtWAuEl/T04Q==}
-    dev: false
 
   /text-table/0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}

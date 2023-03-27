@@ -5,7 +5,6 @@ import { Wasm } from './wasm';
 import type { ParserEvent, Stats } from './data';
 import type { FirmwareKind, FrameDef, InternalFrameDef, Version } from './headers';
 import type { ManagedPointer, RawPointer, WasmInit, WasmObject } from './wasm';
-import type { Temporal } from 'temporal-polyfill';
 
 export class Parser {
 	static async init(init: WasmInit = './blackbox-log.wasm'): Promise<Parser> {
@@ -152,7 +151,7 @@ export class Headers implements WasmObject {
 	}
 
 	@memoize()
-	get firmwareDate(): Temporal.PlainDateTime | string | undefined {
+	get firmwareDate(): Date | string | undefined {
 		return this.#wasm.firmwareDate(this.#ptr.ptr);
 	}
 

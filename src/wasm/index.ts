@@ -1,5 +1,3 @@
-import { Temporal } from 'temporal-polyfill';
-
 import * as DataParsers from './data';
 import * as HeadersParsers from './headers';
 import { ManagedPointer } from './pointers';
@@ -223,11 +221,11 @@ export class Wasm {
 		}
 	}
 
-	firmwareDate(headers: RawPointer<Headers>): Temporal.PlainDateTime | string | undefined {
+	firmwareDate(headers: RawPointer<Headers>): Date | string | undefined {
 		const [discriminant, ...rest] = this.#wasm.headers_firmwareDate(headers);
 		switch (discriminant) {
 			case 1:
-				return new Temporal.PlainDateTime(...rest);
+				return new Date(Date.UTC(...rest));
 			case 2:
 				return getStr([rest[0], rest[1]] as WasmStr, this.#wasm);
 			// Only ever 0:

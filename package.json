@@ -21,7 +21,6 @@
 	},
 	"dependencies": {
 		"comlink": "^4.4.1",
-		"temporal-polyfill": "^0.1.0",
 		"typescript-memoize": "^1.1.1"
 	},
 	"devDependencies": {

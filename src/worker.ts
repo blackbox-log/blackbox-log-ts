@@ -1,5 +1,4 @@
 import * as Comlink from 'comlink';
-import { Temporal } from 'temporal-polyfill';
 
 import { Wasm } from './wasm';
 
@@ -78,9 +77,8 @@ export class AsyncWasm implements Omit<WasmMethods, 'newFile' | 'freeHeaders'> {
 		return this.#getWasm().firmwareKind(this.#getHeaders(headers));
 	}
 
-	firmwareDate(headers: HeadersId): Temporal.PlainDateTimeISOFields | string | undefined {
-		const date = this.#getWasm().firmwareDate(this.#getHeaders(headers));
-		return date instanceof Temporal.PlainDateTime ? date.getISOFields() : date;
+	firmwareDate(headers: HeadersId): Date | string | undefined {
+		return this.#getWasm().firmwareDate(this.#getHeaders(headers));
 	}
 
 	firmwareVersion(headers: HeadersId): Version {

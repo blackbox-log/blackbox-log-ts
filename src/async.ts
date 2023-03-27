@@ -1,5 +1,4 @@
 import * as Comlink from 'comlink';
-import { Temporal } from 'temporal-polyfill';
 
 import { Version } from './headers';
 import { freezeMap, freezeSet } from './utils';
@@ -117,24 +116,8 @@ export class AsyncHeaders implements Methods<Headers, keyof WasmObject> {
 		return this.#wasm.firmwareKind(this.#id);
 	}
 
-	get firmwareDate(): Promise<Temporal.PlainDateTime | string | undefined> {
-		return this.#wasm.firmwareDate(this.#id).then((date) => {
-			if (typeof date === 'object') {
-				return new Temporal.PlainDateTime(
-					date.isoYear,
-					date.isoMonth,
-					date.isoDay,
-					date.isoHour,
-					date.isoMinute,
-					date.isoSecond,
-					date.isoMillisecond,
-					date.isoMicrosecond,
-					date.isoNanosecond,
-				);
-			}
-
-			return date;
-		});
+	get firmwareDate(): Promise<Date | string | undefined> {
+		return this.#wasm.firmwareDate(this.#id);
 	}
 
 	get firmwareVersion(): Promise<Version> {
