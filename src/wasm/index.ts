@@ -60,9 +60,9 @@ export type WasmExports = {
 	data_next: (ptr: RawPointer<DataParser>) => void;
 };
 
-type FrameDef = 'main' | 'slow' | 'gps';
-type CachedFrameDefs = Partial<Record<FrameDef, InternalFrameDef>>;
-type DataParseInfo = Record<FrameDef, InternalFrameDef> & {
+type FrameDefKind = 'main' | 'slow' | 'gps';
+type CachedFrameDefs = Partial<Record<FrameDefKind, InternalFrameDef>>;
+type DataParseInfo = Record<FrameDefKind, InternalFrameDef> & {
 	eventPtr: RawPointer<ParserEvent>;
 };
 
@@ -159,7 +159,7 @@ export class Wasm {
 		this.#wasm.headers_free(headers);
 	}
 
-	frameDef(headers: RawPointer<Headers>, frame: FrameDef): InternalFrameDef {
+	frameDef(headers: RawPointer<Headers>, frame: FrameDefKind): InternalFrameDef {
 		// Was initialized in `newHeaders`
 		const cache = this.#frameDefs.get(headers)!;
 		const cachedDef = cache[frame];
