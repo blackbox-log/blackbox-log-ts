@@ -99,6 +99,8 @@ jobs:
           echo "$(pwd)/binaryen-$version/bin" >> $GITHUB_PATH
       - name: Install multi-value-reverse-polyfill
         run: cargo install --locked --git https://github.com/wetheredge/wasm-multi-value-reverse-polyfill
+      - name: Install wasm-set-start
+        run: cargo install --locked --git https://github.com/wetheredge/wasm-set-start
       - run: just wasm
       - uses: actions/upload-artifact@v3
         with:
