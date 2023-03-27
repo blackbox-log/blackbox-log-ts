@@ -39,6 +39,10 @@ build:
     cargo build --release --target {{ wasmTarget }}
     @cp {{ targetDir / 'blackbox_log_wasm.wasm' }} {{ wasmFile }}
 
+# Set start function
+set-start:
+    wasm-set-start {{ wasmFile }} set_panic_hook
+
 # Apply multi-value transform
 multivalue:
     multi-value-reverse-polyfill {{ wasmFile }} \
@@ -64,7 +68,7 @@ opt:
         --enable-bulk-memory --enable-multivalue --enable-sign-ext
 
 # Full build & optimize, then copy into place
-wasm: build multivalue opt
+wasm: build set-start multivalue opt
     cp {{ wasmFile }} ../src/blackbox-log.wasm
 
 # Show disassembly
@@ -85,3 +89,4 @@ install:
 install-min:
     cargo install --locked wasm-opt
     cargo install --locked --git https://github.com/wetheredge/wasm-multi-value-reverse-polyfill
+    cargo install --locked --git https://github.com/wetheredge/wasm-set-start

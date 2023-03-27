@@ -23,7 +23,6 @@ export type WasmObject = {
 
 export type WasmExports = {
 	memory: WebAssembly.Memory;
-	set_panic_hook: () => void;
 
 	data_alloc: (length: number) => number;
 	slice8_free: (length: number, ptr: number) => void;
@@ -123,7 +122,6 @@ export class Wasm {
 	#dataParserInfo = new Map<RawPointer<DataParser>, DataParseInfo>();
 
 	private constructor(wasm: WasmExports) {
-		wasm.set_panic_hook();
 		this.#wasm = wasm;
 	}
 
