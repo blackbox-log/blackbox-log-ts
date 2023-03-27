@@ -58,10 +58,8 @@
 		</p>
 
 		<script async type="module">
-			import { AsyncParser } from './src/async.ts';
-			import wasm from './src/blackbox-log.wasm?url';
-			import worker from './src/worker.ts?url';
-			const parser = new AsyncParser(wasm, worker);
+			import { AsyncParser, getWasm, worker } from './src/main.ts';
+			const parser = new AsyncParser(getWasm(), worker);
 
 			let file;
 

@@ -4,14 +4,11 @@ import { Temporal } from 'temporal-polyfill';
 import { Version } from './headers';
 import { freezeMap, freezeSet } from './utils';
 
-import type { DataParser, ParserEvent, Stats } from './data';
-import type { File } from './file';
-import type { FirmwareKind, FrameDef, Headers } from './headers';
-import type { Parser } from './parser';
+import type { ParserEvent, Stats } from './data';
+import type { FirmwareKind, FrameDef } from './headers';
+import type { DataParser, File, Headers, Parser } from './sync';
 import type { WasmInit, WasmObject } from './wasm';
 import type { AsyncWasm, DataParserId, HeadersId } from './worker';
-
-export * from './common';
 
 if (import.meta.env.DEV) {
 	// @ts-expect-error Missing declaration file

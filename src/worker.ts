@@ -3,9 +3,9 @@ import { Temporal } from 'temporal-polyfill';
 
 import { Wasm } from './wasm';
 
-import type { DataParser, ParserEvent, Stats } from './data';
-import type { File } from './file';
-import type { FirmwareKind, Headers, InternalFrameDef, Version } from './headers';
+import type { ParserEvent, Stats } from './data';
+import type { FirmwareKind, InternalFrameDef, Version } from './headers';
+import type { DataParser, File, Headers } from './sync';
 import type { ManagedPointer, RawPointer, WasmInit } from './wasm';
 
 type WasmMethods = {

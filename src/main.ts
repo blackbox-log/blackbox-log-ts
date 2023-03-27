@@ -1,11 +1,10 @@
 import encodedWasm from './blackbox-log.wasm?inline';
-import { Parser } from './parser';
-import { Wasm } from './wasm';
 
-export * from './common';
-export { Parser };
+export * from './slim';
 
-export async function init(): Promise<Parser> {
+export const worker = new URL('./worker.ts', import.meta.url);
+
+export async function getWasm(): Promise<WebAssembly.Module> {
 	const decoded = atob(encodedWasm);
 
 	const bytes = new Uint8Array(decoded.length);
@@ -13,7 +12,5 @@ export async function init(): Promise<Parser> {
 		bytes[i] = decoded.charCodeAt(i);
 	}
 
-	const wasmModule = await WebAssembly.compile(bytes);
-	const wasm = await Wasm.init(wasmModule);
-	return new Parser(wasm);
+	return WebAssembly.compile(bytes);
 }

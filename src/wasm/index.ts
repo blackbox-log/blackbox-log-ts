@@ -5,15 +5,16 @@ import * as HeadersParsers from './headers';
 import { ManagedPointer } from './pointers';
 import { getOptionalStr, getStr, getStrSlice } from './str';
 import { ParserEventKind } from '../data';
-import { FirmwareKind, type Headers, type InternalFrameDef, Version } from '../headers';
+import { FirmwareKind, Version } from '../headers';
 import { ParseError } from '../parseError';
 import { freezeMap, freezeSet, unreachable } from '../utils';
 
 import type { RawPointer } from './pointers';
 import type { WasmSlice } from './slice';
 import type { OptionalWasmStr, WasmStr } from './str';
-import type { DataParser, ParserEvent, Stats } from '../data';
-import type { File } from '../file';
+import type { ParserEvent, Stats } from '../data';
+import type { InternalFrameDef } from '../headers';
+import type { DataParser, File, Headers } from '../sync';
 
 export type { RawPointer, ManagedPointer };
 

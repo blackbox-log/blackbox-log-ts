@@ -16,10 +16,6 @@
 			"import": "./dist/slim.js",
 			"types": "./dist/slim.d.ts"
 		},
-		"./async": {
-			"import": "./dist/async.js",
-			"types": "./dist/async.d.ts"
-		},
 		"./wasm": "./dist/blackbox-log.wasm",
 		"./worker": "./dist/worker.js"
 	},

@@ -17,7 +17,7 @@ export const target = [
 export default defineConfig({
 	build: {
 		lib: {
-			entry: ['src/main.ts', 'src/slim.ts', 'src/async.ts'],
+			entry: ['src/main.ts', 'src/slim.ts'],
 			formats: ['es'],
 			fileName: (_format, entry) => `${entry}.js`,
 		},
