@@ -59,7 +59,8 @@ multivalue:
 
 # Run wasm-opt
 opt:
-    wasm-opt -O3 {{ wasmFile }} -o {{ wasmFile }} \
+    wasm-opt {{ wasmFile }} -o {{ wasmFile }} \
+        --merge-similar-functions --optimize-instructions --reorder-functions --rse --simplify-locals -O3 \
         --enable-bulk-memory --enable-multivalue --enable-sign-ext
 
 # Full build & optimize, then copy into place
