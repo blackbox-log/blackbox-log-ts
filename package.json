@@ -9,12 +9,12 @@
 	],
 	"exports": {
 		".": {
-			"import": "./dist/main.js",
-			"types": "./dist/main.d.ts"
+			"types": "./dist/main.d.ts",
+			"default": "./dist/main.js"
 		},
 		"./slim": {
-			"import": "./dist/slim.js",
-			"types": "./dist/slim.d.ts"
+			"types": "./dist/slim.d.ts",
+			"default": "./dist/slim.js"
 		},
 		"./wasm": "./dist/blackbox-log.wasm",
 		"./worker": "./dist/worker.js"
