@@ -5,7 +5,7 @@ import { freezeMap, freezeSet } from './utils';
 
 import type { ParserEvent, Stats } from './data';
 import type { FirmwareKind, FrameDef } from './headers';
-import type { DataParser, File, Headers, Parser } from './sync';
+import type { DataParser, LogFile, LogHeaders, Parser } from './sync';
 import type { WasmInit, WasmObject } from './wasm';
 import type { AsyncWasm, DataParserId, HeadersId } from './worker';
 
@@ -25,7 +25,7 @@ export class AsyncParser implements Methods<Parser> {
 		this.#worker = worker;
 	}
 
-	async loadFile(data: Uint8Array): Promise<AsyncFile> {
+	async loadFile(data: Uint8Array): Promise<AsyncLogFile> {
 		const options: WorkerOptions = {};
 		if (import.meta.env.DEV) {
 			options.type = 'module';
@@ -37,7 +37,7 @@ export class AsyncParser implements Methods<Parser> {
 		const wasm = await this.#wasm;
 		await wrapped.init(wasm, Comlink.transfer(data, [data.buffer]));
 
-		return new AsyncFile(wrapped);
+		return new AsyncLogFile(wrapped);
 	}
 }
 
@@ -56,7 +56,7 @@ async function resolveWasm(init: WasmInit): Promise<string | URL | WebAssembly.M
 	return WebAssembly.compileStreaming(response);
 }
 
-export class AsyncFile implements Methods<File, keyof WasmObject> {
+export class AsyncLogFile implements Methods<LogFile, keyof WasmObject> {
 	readonly #wasm;
 
 	constructor(wasm: Comlink.Remote<AsyncWasm>) {
@@ -67,14 +67,14 @@ export class AsyncFile implements Methods<File, keyof WasmObject> {
 		return this.#wasm.logCount();
 	}
 
-	async parseHeaders(log: number): Promise<AsyncHeaders | undefined> {
+	async parseHeaders(log: number): Promise<AsyncLogHeaders | undefined> {
 		const id = await this.#wasm.newHeaders(log);
 
 		if (id === undefined) {
 			return undefined;
 		}
 
-		return new AsyncHeaders(this.#wasm, id);
+		return new AsyncLogHeaders(this.#wasm, id);
 	}
 
 	get memorySize(): Promise<number> {
@@ -82,7 +82,7 @@ export class AsyncFile implements Methods<File, keyof WasmObject> {
 	}
 }
 
-export class AsyncHeaders implements Methods<Headers, keyof WasmObject> {
+export class AsyncLogHeaders implements Methods<LogHeaders, keyof WasmObject> {
 	readonly #wasm;
 	readonly #id;
 
@@ -171,13 +171,13 @@ export class AsyncDataParser
 	readonly #headers;
 	#done = false;
 
-	constructor(wasm: Comlink.Remote<AsyncWasm>, id: DataParserId, headers: AsyncHeaders) {
+	constructor(wasm: Comlink.Remote<AsyncWasm>, id: DataParserId, headers: AsyncLogHeaders) {
 		this.#wasm = wasm;
 		this.#id = id;
 		this.#headers = headers;
 	}
 
-	get headers(): AsyncHeaders {
+	get headers(): AsyncLogHeaders {
 		return this.#headers;
 	}
 

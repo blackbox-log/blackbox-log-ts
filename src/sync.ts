@@ -18,16 +18,16 @@ export class Parser {
 		this.#wasm = wasm;
 	}
 
-	loadFile(data: Uint8Array): File {
-		return new File(this.#wasm, data);
+	loadFile(data: Uint8Array): LogFile {
+		return new LogFile(this.#wasm, data);
 	}
 }
 
-export class File implements WasmObject {
+export class LogFile implements WasmObject {
 	readonly #wasm: Wasm;
-	readonly #ptr: ManagedPointer<File>;
+	readonly #ptr: ManagedPointer<LogFile>;
 
-	#headers: Array<WeakRef<Headers>> = [];
+	#headers: Array<WeakRef<LogHeaders>> = [];
 
 	constructor(wasm: Wasm, data: Uint8Array) {
 		this.#wasm = wasm;
@@ -50,7 +50,7 @@ export class File implements WasmObject {
 		return this.#wasm.logCount(this.#ptr.ptr);
 	}
 
-	parseHeaders(log: number): Headers | undefined {
+	parseHeaders(log: number): LogHeaders | undefined {
 		if (log >= this.logCount) {
 			return;
 		}
@@ -59,7 +59,7 @@ export class File implements WasmObject {
 			return this.#headers[log].deref();
 		}
 
-		const headers = new Headers(this.#wasm, this.#ptr.ptr, log);
+		const headers = new LogHeaders(this.#wasm, this.#ptr.ptr, log);
 		this.#headers[log] = new WeakRef(headers);
 		return headers;
 	}
@@ -69,9 +69,9 @@ export class File implements WasmObject {
 	}
 }
 
-export class Headers implements WasmObject {
+export class LogHeaders implements WasmObject {
 	readonly #wasm: Wasm;
-	readonly #ptr: ManagedPointer<Headers>;
+	readonly #ptr: ManagedPointer<LogHeaders>;
 
 	#parsers: Array<WeakRef<DataParser>> = [];
 
@@ -79,7 +79,7 @@ export class Headers implements WasmObject {
 	#slowFrameDef: InternalFrameDef | undefined;
 	#gpsFrameDef: InternalFrameDef | undefined;
 
-	constructor(wasm: Wasm, file: RawPointer<File>, log: number) {
+	constructor(wasm: Wasm, file: RawPointer<LogFile>, log: number) {
 		this.#wasm = wasm;
 		this.#ptr = wasm.newHeaders(file, log);
 	}
@@ -199,10 +199,10 @@ export class Headers implements WasmObject {
 export class DataParser implements WasmObject, IterableIterator<ParserEvent> {
 	readonly #wasm: Wasm;
 	readonly #ptr: ManagedPointer<DataParser>;
-	readonly #headers: Headers;
+	readonly #headers: LogHeaders;
 	#done = false;
 
-	constructor(wasm: Wasm, ptr: ManagedPointer<DataParser>, headers: Headers) {
+	constructor(wasm: Wasm, ptr: ManagedPointer<DataParser>, headers: LogHeaders) {
 		this.#wasm = wasm;
 		this.#ptr = ptr;
 		this.#headers = headers;
@@ -216,7 +216,7 @@ export class DataParser implements WasmObject, IterableIterator<ParserEvent> {
 		return this.#ptr.isAlive;
 	}
 
-	get headers(): Headers {
+	get headers(): LogHeaders {
 		return this.#headers;
 	}
 

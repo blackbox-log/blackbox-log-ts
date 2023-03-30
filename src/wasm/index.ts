@@ -12,7 +12,7 @@ import type { WasmSlice } from './slice';
 import type { OptionalWasmStr, WasmStr } from './str';
 import type { ParserEvent, Stats } from '../data';
 import type { InternalFrameDef } from '../headers';
-import type { DataParser, File, Headers } from '../sync';
+import type { DataParser, LogFile, LogHeaders } from '../sync';
 
 export type { RawPointer, ManagedPointer };
 
@@ -118,7 +118,7 @@ export class Wasm {
 	}
 
 	readonly #wasm;
-	#frameDefs = new Map<RawPointer<Headers>, CachedFrameDefs>();
+	#frameDefs = new Map<RawPointer<LogHeaders>, CachedFrameDefs>();
 	#dataParserInfo = new Map<RawPointer<DataParser>, DataParseInfo>();
 
 	private constructor(wasm: WasmExports) {
@@ -129,7 +129,7 @@ export class Wasm {
 		return this.#wasm.memory.buffer.byteLength;
 	}
 
-	newFile(data: Uint8Array): ManagedPointer<File> {
+	newFile(data: Uint8Array): ManagedPointer<LogFile> {
 		const dataPtr = this.#wasm.data_alloc(data.length);
 		if (dataPtr === 0) {
 			throw new Error('file allocation failed');
@@ -138,26 +138,26 @@ export class Wasm {
 		const buffer = this.#uint8Array(dataPtr, data.length);
 		buffer.set(data);
 
-		const filePtr = this.#wasm.file_new(dataPtr, data.length) as RawPointer<File>;
+		const filePtr = this.#wasm.file_new(dataPtr, data.length) as RawPointer<LogFile>;
 		return new ManagedPointer(filePtr, this.#wasm.file_free);
 	}
 
-	logCount(file: RawPointer<File>): number {
+	logCount(file: RawPointer<LogFile>): number {
 		return this.#wasm.file_logCount(file);
 	}
 
-	newHeaders(file: RawPointer<File>, log: number): ManagedPointer<Headers> {
-		const ptr = this.#wasm.file_getHeaders(file, log) as RawPointer<Headers>;
+	newHeaders(file: RawPointer<LogFile>, log: number): ManagedPointer<LogHeaders> {
+		const ptr = this.#wasm.file_getHeaders(file, log) as RawPointer<LogHeaders>;
 		this.#frameDefs.set(ptr, {});
 		return new ManagedPointer(ptr, this.freeHeaders.bind(this));
 	}
 
-	freeHeaders(headers: RawPointer<Headers>) {
+	freeHeaders(headers: RawPointer<LogHeaders>) {
 		this.#frameDefs.delete(headers);
 		this.#wasm.headers_free(headers);
 	}
 
-	frameDef(headers: RawPointer<Headers>, frame: FrameDefKind): InternalFrameDef {
+	frameDef(headers: RawPointer<LogHeaders>, frame: FrameDefKind): InternalFrameDef {
 		// Was initialized in `newHeaders`
 		const cache = this.#frameDefs.get(headers)!;
 		const cachedDef = cache[frame];
@@ -183,7 +183,7 @@ export class Wasm {
 	}
 
 	strHeader(
-		headers: RawPointer<Headers>,
+		headers: RawPointer<LogHeaders>,
 		header: 'firmwareRevision' | 'debugMode' | 'pwmProtocol',
 	): string {
 		const str = this.#wasm[`headers_${header}`](headers);
@@ -191,7 +191,7 @@ export class Wasm {
 	}
 
 	strOptionHeader(
-		headers: RawPointer<Headers>,
+		headers: RawPointer<LogHeaders>,
 		header: 'boardInfo' | 'craftName',
 	): string | undefined {
 		const str = this.#wasm[`headers_${header}`](headers);
@@ -199,7 +199,7 @@ export class Wasm {
 	}
 
 	strSetHeader(
-		headers: RawPointer<Headers>,
+		headers: RawPointer<LogHeaders>,
 		header: 'disabledFields' | 'features',
 	): ReadonlySet<string> {
 		const slice = this.#wasm[`headers_${header}`](headers);
@@ -207,7 +207,7 @@ export class Wasm {
 		return freezeSet(fields);
 	}
 
-	firmwareKind(headers: RawPointer<Headers>): FirmwareKind {
+	firmwareKind(headers: RawPointer<LogHeaders>): FirmwareKind {
 		const kind = this.#wasm.headers_firmwareKind(headers);
 		switch (kind) {
 			case 0:
@@ -219,7 +219,7 @@ export class Wasm {
 		}
 	}
 
-	firmwareDate(headers: RawPointer<Headers>): Date | string | undefined {
+	firmwareDate(headers: RawPointer<LogHeaders>): Date | string | undefined {
 		const [discriminant, ...rest] = this.#wasm.headers_firmwareDate(headers);
 		switch (discriminant) {
 			case 1:
@@ -232,18 +232,18 @@ export class Wasm {
 		}
 	}
 
-	firmwareVersion(headers: RawPointer<Headers>): Version {
+	firmwareVersion(headers: RawPointer<LogHeaders>): Version {
 		const version = this.#wasm.headers_firmwareVersion(headers);
 		return new Version(...version);
 	}
 
-	unknownHeaders(headers: RawPointer<Headers>): ReadonlyMap<string, string> {
+	unknownHeaders(headers: RawPointer<LogHeaders>): ReadonlyMap<string, string> {
 		const slice = this.#wasm.headers_unknown(headers);
 		const map = new Map(HeadersParsers.getUnknownHeaderPairs(slice, this.#wasm));
 		return freezeMap(map);
 	}
 
-	newData(headers: RawPointer<Headers>): ManagedPointer<DataParser> {
+	newData(headers: RawPointer<LogHeaders>): ManagedPointer<DataParser> {
 		const main = this.frameDef(headers, 'main');
 		const slow = this.frameDef(headers, 'slow');
 		const gps = this.frameDef(headers, 'gps');

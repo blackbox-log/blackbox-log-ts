@@ -4,7 +4,7 @@ import { Wasm } from './wasm';
 
 import type { ParserEvent, Stats } from './data';
 import type { FirmwareKind, InternalFrameDef, Version } from './headers';
-import type { DataParser, File, Headers } from './sync';
+import type { DataParser, LogFile, LogHeaders } from './sync';
 import type { ManagedPointer, RawPointer, WasmInit } from './wasm';
 
 type WasmMethods = {
@@ -19,8 +19,8 @@ export type DataParserId = number & { [dataParserId]: true };
 
 export class AsyncWasm implements Omit<WasmMethods, 'newFile' | 'freeHeaders'> {
 	#wasm: Wasm | undefined;
-	#file: ManagedPointer<File> | undefined;
-	#headers = new Map<number, ManagedPointer<Headers>>();
+	#file: ManagedPointer<LogFile> | undefined;
+	#headers = new Map<number, ManagedPointer<LogHeaders>>();
 	#dataParsers: Array<ManagedPointer<DataParser>> = [];
 
 	async init(wasm: WasmInit, file: Uint8Array) {
@@ -111,7 +111,7 @@ export class AsyncWasm implements Omit<WasmMethods, 'newFile' | 'freeHeaders'> {
 		return this.#wasm;
 	}
 
-	#getFile(): RawPointer<File> {
+	#getFile(): RawPointer<LogFile> {
 		if (this.#file === undefined) {
 			throw new Error('never initialized');
 		} else {
@@ -119,7 +119,7 @@ export class AsyncWasm implements Omit<WasmMethods, 'newFile' | 'freeHeaders'> {
 		}
 	}
 
-	#getHeaders(id: HeadersId): RawPointer<Headers> {
+	#getHeaders(id: HeadersId): RawPointer<LogHeaders> {
 		const headers = this.#headers.get(id);
 
 		if (headers === undefined) {
