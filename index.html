@@ -72,8 +72,7 @@
 				updateMemory();
 
 				const buffer = await upload.files[0].arrayBuffer();
-				const view = new Uint8Array(buffer);
-				file = await parser.loadFile(view);
+				file = await parser.loadFile(buffer);
 
 				const logCount = await file.logCount;
 				logNum.value = logCount > 0 ? 1 : undefined;

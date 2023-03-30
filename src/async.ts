@@ -25,7 +25,7 @@ export class AsyncParser implements Methods<Parser> {
 		this.#worker = worker;
 	}
 
-	async loadFile(data: Uint8Array): Promise<AsyncLogFile> {
+	async loadFile(data: Uint8Array | ArrayBufferLike): Promise<AsyncLogFile> {
 		const options: WorkerOptions = {};
 		if (import.meta.env.DEV) {
 			options.type = 'module';
@@ -35,7 +35,8 @@ export class AsyncParser implements Methods<Parser> {
 		const wrapped = Comlink.wrap<AsyncWasm>(worker);
 
 		const wasm = await this.#wasm;
-		await wrapped.init(wasm, Comlink.transfer(data, [data.buffer]));
+		const dataArr = data instanceof Uint8Array ? data : new Uint8Array(data);
+		await wrapped.init(wasm, Comlink.transfer(dataArr, [dataArr.buffer]));
 
 		return new AsyncLogFile(wrapped);
 	}

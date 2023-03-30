@@ -18,8 +18,9 @@ export class Parser {
 		this.#wasm = wasm;
 	}
 
-	loadFile(data: Uint8Array): LogFile {
-		return new LogFile(this.#wasm, data);
+	loadFile(data: Uint8Array | ArrayBufferLike): LogFile {
+		const dataArr = data instanceof Uint8Array ? data : new Uint8Array(data);
+		return new LogFile(this.#wasm, dataArr);
 	}
 }
 
