@@ -22,44 +22,32 @@ export function getParserEventKind(raw: number): ParserEventKind | undefined {
 	}
 }
 
-export function getMainData(
-	memory: WebAssembly.Memory,
-	start: number,
-	def: InternalFrameDef,
-): MainFrame {
+export function getMainData(memory: DataView, start: number, def: InternalFrameDef): MainFrame {
 	return {
 		time: getTime(memory, start),
 		fields: getFields(memory, start + 8, def),
 	};
 }
 
-export function getSlowData(
-	memory: WebAssembly.Memory,
-	start: number,
-	def: InternalFrameDef,
-): SlowFrame {
+export function getSlowData(memory: DataView, start: number, def: InternalFrameDef): SlowFrame {
 	const fields = getFields(memory, start, def);
 	return { fields };
 }
 
-export function getGpsData(
-	memory: WebAssembly.Memory,
-	start: number,
-	def: InternalFrameDef,
-): GpsFrame {
+export function getGpsData(memory: DataView, start: number, def: InternalFrameDef): GpsFrame {
 	return {
 		time: getTime(memory, start),
 		fields: getFields(memory, start + 8, def),
 	};
 }
 
-function getTime(memory: WebAssembly.Memory, start: number): number {
-	const f64s = new Float64Array(memory.buffer, start, 1);
-	return f64s[0];
+function getTime(memory: DataView, start: number): number {
+	return memory.getFloat64(start);
 }
 
-function getFields(memory: WebAssembly.Memory, start: number, def: InternalFrameDef): FrameFields {
-	const [len, ptr] = new Uint32Array(memory.buffer, start, 2);
+function getFields(memory: DataView, start: number, def: InternalFrameDef): FrameFields {
+	const len = memory.getUint32(start, true);
+	const ptr = memory.getUint32(start + 4, true);
 
 	if (len === 0 || ptr === 0) {
 		return new Map();

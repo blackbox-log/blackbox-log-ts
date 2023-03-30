@@ -135,7 +135,7 @@ export class Wasm {
 			throw new Error('file allocation failed');
 		}
 
-		const buffer = this.#uint8Array(dataPtr, data.length);
+		const buffer = new Uint8Array(this.#wasm.memory.buffer, dataPtr, data.length);
 		buffer.set(data);
 
 		const filePtr = this.#wasm.file_new(dataPtr, data.length) as RawPointer<LogFile>;
@@ -166,8 +166,11 @@ export class Wasm {
 			return cachedDef;
 		}
 
+		const memory = this.#dataView;
 		const ptr = this.#wasm[`headers_${frame}Def`](headers);
-		const [len, fields] = this.#uint32Array(ptr, 2);
+		const len = memory.getUint32(ptr, true);
+		const fields = memory.getUint32(ptr + 4, true);
+
 		const def = freezeMap(
 			new Map(
 				HeadersParsers.getFieldDefs(
@@ -268,9 +271,9 @@ export class Wasm {
 		this.#wasm.data_next(data);
 		const { eventPtr, ...frameDefs } = this.#dataParserInfo.get(data)!;
 
-		const bytes = this.#uint8Array(eventPtr);
+		const memory = this.#dataView;
 
-		const kind = DataParsers.getParserEventKind(bytes[0]);
+		const kind = DataParsers.getParserEventKind(memory.getUint8(eventPtr));
 		if (kind === undefined) {
 			return;
 		}
@@ -285,19 +288,19 @@ export class Wasm {
 			case ParserEventKind.MainFrame:
 				return {
 					kind,
-					data: DataParsers.getMainData(this.#wasm.memory, dataStart, frameDefs.main),
+					data: DataParsers.getMainData(memory, dataStart, frameDefs.main),
 				};
 
 			case ParserEventKind.SlowFrame:
 				return {
 					kind,
-					data: DataParsers.getSlowData(this.#wasm.memory, dataStart, frameDefs.slow),
+					data: DataParsers.getSlowData(memory, dataStart, frameDefs.slow),
 				};
 
 			case ParserEventKind.GpsFrame:
 				return {
 					kind,
-					data: DataParsers.getGpsData(this.#wasm.memory, dataStart, frameDefs.gps),
+					data: DataParsers.getGpsData(memory, dataStart, frameDefs.gps),
 				};
 
 			default:
@@ -305,11 +308,12 @@ export class Wasm {
 		}
 	}
 
-	#uint8Array(start: number, length?: number) {
-		return new Uint8Array(this.#wasm.memory.buffer, start, length);
-	}
+	#cachedDataView: DataView | undefined;
+	get #dataView(): DataView {
+		if (this.#cachedDataView?.byteLength) {
+			return this.#cachedDataView;
+		}
 
-	#uint32Array(start: number, length?: number) {
-		return new Uint32Array(this.#wasm.memory.buffer, start, length);
+		return (this.#cachedDataView = new DataView(this.#wasm.memory.buffer));
 	}
 }
