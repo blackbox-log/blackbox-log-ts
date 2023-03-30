@@ -76,9 +76,9 @@ export class LogHeaders implements WasmObject {
 
 	#parsers: Array<WeakRef<DataParser>> = [];
 
-	#mainFrameDef: InternalFrameDef | undefined;
-	#slowFrameDef: InternalFrameDef | undefined;
-	#gpsFrameDef: InternalFrameDef | undefined;
+	#_mainFrameDef: InternalFrameDef | undefined;
+	#_slowFrameDef: InternalFrameDef | undefined;
+	#_gpsFrameDef: InternalFrameDef | undefined;
 
 	constructor(wasm: Wasm, file: RawPointer<LogFile>, log: number) {
 		this.#wasm = wasm;
@@ -106,11 +106,11 @@ export class LogHeaders implements WasmObject {
 	}
 
 	#getMainFrameDef(): InternalFrameDef {
-		if (this.#mainFrameDef === undefined) {
-			this.#mainFrameDef = this.#wasm.frameDef(this.#ptr.ptr, 'main');
+		if (this.#_mainFrameDef === undefined) {
+			this.#_mainFrameDef = this.#wasm.frameDef(this.#ptr.ptr, 'main');
 		}
 
-		return this.#mainFrameDef;
+		return this.#_mainFrameDef;
 	}
 
 	get mainFrameDef(): FrameDef {
@@ -118,11 +118,11 @@ export class LogHeaders implements WasmObject {
 	}
 
 	#getSlowFrameDef(): InternalFrameDef {
-		if (this.#slowFrameDef === undefined) {
-			this.#slowFrameDef = this.#wasm.frameDef(this.#ptr.ptr, 'slow');
+		if (this.#_slowFrameDef === undefined) {
+			this.#_slowFrameDef = this.#wasm.frameDef(this.#ptr.ptr, 'slow');
 		}
 
-		return this.#slowFrameDef;
+		return this.#_slowFrameDef;
 	}
 
 	get slowFrameDef(): FrameDef {
@@ -130,11 +130,11 @@ export class LogHeaders implements WasmObject {
 	}
 
 	#getGpsFrameDef(): InternalFrameDef {
-		if (this.#gpsFrameDef === undefined) {
-			this.#gpsFrameDef = this.#wasm.frameDef(this.#ptr.ptr, 'gps');
+		if (this.#_gpsFrameDef === undefined) {
+			this.#_gpsFrameDef = this.#wasm.frameDef(this.#ptr.ptr, 'gps');
 		}
 
-		return this.#gpsFrameDef;
+		return this.#_gpsFrameDef;
 	}
 
 	get gpsFrameDef(): FrameDef {

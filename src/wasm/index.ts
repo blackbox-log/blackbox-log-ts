@@ -121,6 +121,8 @@ export class Wasm {
 	#frameDefs = new Map<RawPointer<LogHeaders>, CachedFrameDefs>();
 	#dataParserInfo = new Map<RawPointer<DataParser>, DataParseInfo>();
 
+	#_cachedDataView: DataView | undefined;
+
 	private constructor(wasm: WasmExports) {
 		this.#wasm = wasm;
 	}
@@ -308,12 +310,11 @@ export class Wasm {
 		}
 	}
 
-	#cachedDataView: DataView | undefined;
 	get #dataView(): DataView {
-		if (this.#cachedDataView?.byteLength) {
-			return this.#cachedDataView;
+		if (this.#_cachedDataView?.byteLength) {
+			return this.#_cachedDataView;
 		}
 
-		return (this.#cachedDataView = new DataView(this.#wasm.memory.buffer));
+		return (this.#_cachedDataView = new DataView(this.#wasm.memory.buffer));
 	}
 }
