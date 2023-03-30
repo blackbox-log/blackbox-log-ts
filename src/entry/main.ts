@@ -1,7 +1,9 @@
 import encodedWasm from '../blackbox-log.wasm?inline';
 import worker from '../worker?url';
 
-export * from './slim';
+export * from './common';
+export * from '../async';
+export * from '../sync';
 export { worker };
 
 export async function getWasm(): Promise<WebAssembly.Module> {

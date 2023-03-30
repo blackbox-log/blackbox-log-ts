@@ -7,7 +7,7 @@ import type { FirmwareKind, FrameDef, InternalFrameDef, Version } from './header
 import type { ManagedPointer, RawPointer, WasmInit, WasmObject } from './wasm';
 
 export class Parser {
-	static async init(init: WasmInit = './blackbox-log.wasm'): Promise<Parser> {
+	static async init(init: WasmInit): Promise<Parser> {
 		const wasm = await Wasm.init(init);
 		return new Parser(wasm);
 	}

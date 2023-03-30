@@ -13,6 +13,3 @@ export type {
 } from '../data';
 export type { FrameDef } from '../headers';
 export type { WasmObject } from '../wasm';
-
-export * from '../sync';
-export * from '../async';

@@ -12,9 +12,13 @@
 			"types": "./dist/main.d.ts",
 			"default": "./dist/main.js"
 		},
-		"./slim": {
-			"types": "./dist/slim.d.ts",
-			"default": "./dist/slim.js"
+		"./async": {
+			"types": "./dist/async.d.ts",
+			"default": "./dist/async.js"
+		},
+		"./sync": {
+			"types": "./dist/sync.d.ts",
+			"default": "./dist/sync.js"
 		},
 		"./wasm": "./dist/blackbox-log.wasm",
 		"./worker": "./dist/worker.js"
