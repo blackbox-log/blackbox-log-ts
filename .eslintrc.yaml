@@ -13,6 +13,9 @@ parserOptions:
   ecmaFeatures:
     jsx: false
 rules:
+  no-return-assign:
+    - error
+    - except-parens
   sort-imports:
     - warn
     - ignoreDeclarationSort: true
