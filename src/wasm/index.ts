@@ -21,6 +21,7 @@ export type WasmObject = {
 	free(): void;
 };
 
+/* eslint-disable @typescript-eslint/naming-convention */
 export type WasmExports = {
 	memory: WebAssembly.Memory;
 
@@ -58,6 +59,7 @@ export type WasmExports = {
 	data_counts: (ptr: number) => [number, number, number, number, number];
 	data_next: (ptr: RawPointer<DataParser>) => void;
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
 type FrameDefKind = 'main' | 'slow' | 'gps';
 type CachedFrameDefs = Partial<Record<FrameDefKind, InternalFrameDef>>;
