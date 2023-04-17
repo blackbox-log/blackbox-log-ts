@@ -16,7 +16,11 @@ if (import.meta.env.DEV) {
 
 type Methods<T, OmitKeys extends keyof T = never> = Omit<{ [Key in keyof T]: any }, OmitKeys>;
 
-export class AsyncParser implements Methods<Parser> {
+// @ts-expect-error 'T' is declared but its value is never read.
+function expectImplements<T extends Base, Base>() {} // eslint-disable-line @typescript-eslint/no-empty-function
+
+expectImplements<AsyncParser, Methods<Parser>>();
+export class AsyncParser {
 	readonly #wasm;
 	readonly #worker;
 
@@ -57,7 +61,8 @@ async function resolveWasm(init: WasmInit): Promise<string | URL | WebAssembly.M
 	return WebAssembly.compileStreaming(response);
 }
 
-export class AsyncLogFile implements Methods<LogFile, keyof WasmObject> {
+expectImplements<AsyncLogFile, Methods<LogFile, keyof WasmObject>>();
+export class AsyncLogFile {
 	readonly #wasm;
 
 	constructor(wasm: Comlink.Remote<AsyncWasm>) {
@@ -83,7 +88,8 @@ export class AsyncLogFile implements Methods<LogFile, keyof WasmObject> {
 	}
 }
 
-export class AsyncLogHeaders implements Methods<LogHeaders, keyof WasmObject> {
+expectImplements<AsyncLogHeaders, Methods<LogHeaders, keyof WasmObject>>();
+export class AsyncLogHeaders {
 	readonly #wasm;
 	readonly #id;
 
@@ -162,11 +168,11 @@ export class AsyncLogHeaders implements Methods<LogHeaders, keyof WasmObject> {
 	}
 }
 
-export class AsyncDataParser
-	implements
-		Methods<DataParser, keyof WasmObject | SymbolConstructor['iterator']>,
-		AsyncIterableIterator<ParserEvent>
-{
+expectImplements<
+	AsyncDataParser,
+	Methods<DataParser, keyof WasmObject | SymbolConstructor['iterator']>
+>();
+export class AsyncDataParser implements AsyncIterableIterator<ParserEvent> {
 	readonly #wasm;
 	readonly #id;
 	readonly #headers;
