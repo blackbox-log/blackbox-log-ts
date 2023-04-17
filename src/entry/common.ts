@@ -12,4 +12,4 @@ export type {
 	Stats,
 } from '../data';
 export type { FrameDef } from '../headers';
-export type { WasmObject } from '../wasm';
+export type { WasmObject, WasmInit } from '../wasm';

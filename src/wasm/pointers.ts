@@ -1,4 +1,8 @@
 declare const pointee: unique symbol;
+/** 
+ * A raw, unmanaged pointer to an object in wasm memory.
+ * @internal
+ */
 export type RawPointer<T> = number & { [pointee]: T };
 
 const registry = new FinalizationRegistry<RegistryValue<unknown>>(dealloc);
@@ -8,6 +12,10 @@ function dealloc<T>({ ptr, free }: RegistryValue<T>) {
 	free(ptr);
 }
 
+/**
+ * A managed pointer to an object in wasm memory that tracks liveness and can be freed.
+ * @internal
+ */
 export class ManagedPointer<T> {
 	#ptr: RawPointer<T> | undefined;
 	readonly #free;

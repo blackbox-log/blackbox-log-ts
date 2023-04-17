@@ -1,10 +1,9 @@
 import encodedWasm from '../blackbox-log.wasm?inline';
-import worker from '../worker?url';
+import workerUrl from '../worker?url';
 
 export * from './common';
 export * from '../async';
 export * from '../sync';
-export { worker };
 
 export async function getWasm(): Promise<WebAssembly.Module> {
 	const decoded = atob(encodedWasm);
@@ -16,3 +15,5 @@ export async function getWasm(): Promise<WebAssembly.Module> {
 
 	return WebAssembly.compile(bytes);
 }
+
+export const worker = workerUrl;

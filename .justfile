@@ -23,6 +23,10 @@ build: && build-worker
 build-worker:
     pnpm vite --config vite.worker.config.js build
 
+# Build API documentation
+doc:
+    pnpm typedoc
+
 # Remove build artifacts
 clean:
     rm -f src/blackbox-log.wasm

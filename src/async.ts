@@ -65,6 +65,7 @@ expectImplements<AsyncLogFile, Methods<LogFile, keyof WasmObject>>();
 export class AsyncLogFile {
 	readonly #wasm;
 
+	/** @internal */
 	constructor(wasm: Comlink.Remote<AsyncWasm>) {
 		this.#wasm = wasm;
 	}
@@ -93,6 +94,7 @@ export class AsyncLogHeaders {
 	readonly #wasm;
 	readonly #id;
 
+	/** @internal */
 	constructor(wasm: Comlink.Remote<AsyncWasm>, id: HeadersId) {
 		this.#wasm = wasm;
 		this.#id = id;
@@ -178,6 +180,7 @@ export class AsyncDataParser implements AsyncIterableIterator<ParserEvent> {
 	readonly #headers;
 	#done = false;
 
+	/** @internal */
 	constructor(wasm: Comlink.Remote<AsyncWasm>, id: DataParserId, headers: AsyncLogHeaders) {
 		this.#wasm = wasm;
 		this.#id = id;

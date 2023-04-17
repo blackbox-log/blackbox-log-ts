@@ -1,6 +1,7 @@
 import type { Unit } from './units';
 
 export type FrameDef = ReadonlyMap<string, { unit: Unit }>;
+/** @internal */
 export type InternalFrameDef = ReadonlyMap<string, { unit: Unit; signed: boolean }>;
 
 export enum FirmwareKind {

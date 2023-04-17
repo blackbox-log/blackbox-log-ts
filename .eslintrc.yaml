@@ -8,6 +8,8 @@ extends:
   - xo
   - xo-typescript
   - plugin:prettier/recommended
+plugins:
+  - eslint-plugin-tsdoc
 parserOptions:
   jsx: false
   ecmaFeatures:
@@ -32,6 +34,7 @@ rules:
   import/no-cycle:
     - warn
     - ignoreExternal: true
+  tsdoc/syntax: warn
 settings:
   import/resolver:
     typescript: true

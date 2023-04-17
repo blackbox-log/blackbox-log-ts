@@ -14,6 +14,7 @@ export class Parser {
 
 	readonly #wasm;
 
+	/** @internal */
 	constructor(wasm: Wasm) {
 		this.#wasm = wasm;
 	}
@@ -30,6 +31,7 @@ export class LogFile implements WasmObject {
 
 	#headers: Array<WeakRef<LogHeaders>> = [];
 
+	/** @internal */
 	constructor(wasm: Wasm, data: Uint8Array) {
 		this.#wasm = wasm;
 		this.#ptr = wasm.newFile(data);
@@ -80,6 +82,7 @@ export class LogHeaders implements WasmObject {
 	#_slowFrameDef: InternalFrameDef | undefined;
 	#_gpsFrameDef: InternalFrameDef | undefined;
 
+	/** @internal */
 	constructor(wasm: Wasm, file: RawPointer<LogFile>, log: number) {
 		this.#wasm = wasm;
 		this.#ptr = wasm.newHeaders(file, log);
@@ -203,6 +206,7 @@ export class DataParser implements WasmObject, IterableIterator<ParserEvent> {
 	readonly #headers: LogHeaders;
 	#done = false;
 
+	/** @internal */
 	constructor(wasm: Wasm, ptr: ManagedPointer<DataParser>, headers: LogHeaders) {
 		this.#wasm = wasm;
 		this.#ptr = ptr;

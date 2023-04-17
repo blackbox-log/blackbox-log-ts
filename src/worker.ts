@@ -11,12 +11,15 @@ type WasmMethods = {
 	[Method in keyof Wasm]: any;
 };
 
-declare const headerId: unique symbol;
+/** @internal */
 export type HeadersId = number & { [headerId]: true };
+declare const headerId: unique symbol;
 
-declare const dataParserId: unique symbol;
+/** @internal */
 export type DataParserId = number & { [dataParserId]: true };
+declare const dataParserId: unique symbol;
 
+/** @internal */
 export class AsyncWasm implements Omit<WasmMethods, 'newFile' | 'freeHeaders'> {
 	#wasm: Wasm | undefined;
 	#file: ManagedPointer<LogFile> | undefined;

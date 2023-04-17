@@ -79,6 +79,7 @@ export type WasmInit =
 declare const dataParserId: unique symbol;
 export type DataParserId = number & { [dataParserId]: true };
 
+/** @internal */
 export class Wasm {
 	static async init(init: WasmInit): Promise<Wasm> {
 		let instance;
