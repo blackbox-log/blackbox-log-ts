@@ -4,5 +4,8 @@
 	"out": "./docs",
 	"excludePrivate": true,
 	"excludeInternal": true,
-	"includeVersion": true
+	"includeVersion": true,
+	"navigationLinks": {
+		"GitHub": "https://github.com/blackbox-log/blackbox-log-ts"
+	}
 }
