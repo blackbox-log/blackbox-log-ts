@@ -16,11 +16,9 @@ dev *args='':
     pnpm vite {{ args }}
 
 # Check types and build for production
-build: && build-worker
+build:
     pnpm tsc
     pnpm vite build
-
-build-worker:
     pnpm vite --config vite.worker.config.js build
 
 # Build API documentation
