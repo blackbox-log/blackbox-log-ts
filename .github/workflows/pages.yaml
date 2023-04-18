@@ -6,6 +6,7 @@ on:
     paths:
       - pnpm-lock.yaml
       - 'src/**'
+      - README.md
       - typedoc.json
       - .github/workflows/pages.yaml
   workflow_dispatch:
