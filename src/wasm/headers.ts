@@ -1,6 +1,6 @@
-import { Unit } from '../units';
 import { makeGetSlice } from './slice';
 import { getStr } from './str';
+import { Unit } from '../units';
 
 import type { WasmStr } from './str';
 

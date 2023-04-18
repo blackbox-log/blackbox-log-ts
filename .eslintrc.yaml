@@ -21,6 +21,9 @@ rules:
   sort-imports:
     - warn
     - ignoreDeclarationSort: true
+  import/consistent-type-specifier-style:
+    - warn
+    - prefer-top-level
   import/order:
     - warn
     - groups:
