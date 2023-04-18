@@ -136,6 +136,6 @@ place it in `src/`.
 [`parserevent`]: https://blackbox-log.github.io/blackbox-log-ts/types/main.ParserEvent.html
 [conditional exports]: https://nodejs.org/api/packages.html#packages_conditional_exports
 [ts 4.7]:
-	https://devblogs.microsoft.com/typescript/announcing-typescript-4-7/#package-json-exports-imports-and-self-referencing
+	https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-7.html#packagejson-exports-imports-and-self-referencing
 [ts 5.0]:
-	https://devblogs.microsoft.com/typescript/announcing-typescript-5-0/#moduleresolution-bundler
+	https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-0.html#--moduleresolution-bundler
