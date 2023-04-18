@@ -1,4 +1,5 @@
 printWidth = 100
+proseWrap = "always"
 singleQuote = true
 tabWidth = 4
 trailingComma = "all"
@@ -6,4 +7,5 @@ useTabs = true
 
 [[overrides]]
 files = "**.yaml"
+options.proseWrap = "preserve"
 options.tabWidth = 2

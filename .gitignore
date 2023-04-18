@@ -4,3 +4,4 @@ dist/
 .eslintcache
 src/blackbox-log.wasm
 docs/
+.docs-readme.md

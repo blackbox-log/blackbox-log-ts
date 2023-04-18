@@ -22,7 +22,16 @@ build:
     pnpm vite --config vite.worker.config.js build
 
 # Build API documentation
-doc:
+doc: _doc
+
+[unix]
+_doc:
+    sed '1 s/`//g; s|https://blackbox-log.github.io/blackbox-log-ts||g' README.md > .docs-readme.md
+    pnpm typedoc --readme .docs-readme.md
+    rm .docs-readme.md
+
+[windows]
+_doc:
     pnpm typedoc
 
 # Remove build artifacts
