@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { defineConfig } from 'vite';
 import { viteStaticCopy as staticCopy } from 'vite-plugin-static-copy';
+import { dependencies } from './package.json';
 
 // Vite default + wasm sign-extension, multi-value, and bulk memory
 export const target = [
@@ -20,6 +21,9 @@ export default defineConfig({
 			entry: ['main', 'async', 'sync'].map((s) => `src/entry/${s}.ts`),
 			formats: ['es'],
 			fileName: (_format, entry) => `${entry}.js`,
+		},
+		rollupOptions: {
+			external: Object.keys(dependencies),
 		},
 		target,
 		sourcemap: true,
