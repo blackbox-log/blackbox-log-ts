@@ -10,8 +10,8 @@ check: && lint typecheck
     pnpm prettier --check .
 
 # Run eslint
-lint:
-    pnpm eslint src
+lint *args='':
+    pnpm eslint src {{ args }}
 
 # Run typechecking
 typecheck:
