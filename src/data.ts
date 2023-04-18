@@ -14,6 +14,7 @@ export enum ParserEventKind {
 export type FrameFields = ReadonlyMap<string, number>;
 
 export type MainFrame = {
+	/** Frame time in fractional seconds */
 	time: number;
 	fields: FrameFields;
 };
@@ -23,11 +24,13 @@ export type SlowFrame = {
 };
 
 export type GpsFrame = {
+	/** Frame time in fractional seconds */
 	time: number;
 	fields: FrameFields;
 };
 
 export type Stats = {
+	/** The number of valid frames found of each type */
 	counts: {
 		event: number;
 		main: number;
