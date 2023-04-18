@@ -1,7 +1,16 @@
 {
+	"$schema": "https://json.schemastore.org/package.json",
 	"name": "blackbox-log",
-	"private": true,
 	"version": "0.1.0",
+	"license": "GPL-3.0-only",
+	"description": "Parser for Betaflight & INAV blackbox logs",
+	"keywords": [
+		"blackbox-log",
+		"betaflight",
+		"inav"
+	],
+	"homepage": "https://blackbox-log.github.io/blackbox-log-ts/",
+	"repository": "github:blackbox-log/blackbox-log-ts",
 	"type": "module",
 	"files": [
 		"dist",
