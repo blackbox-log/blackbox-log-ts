@@ -140,7 +140,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm eslint src --max-warnings 0
 
-  tsc:
+  build:
     runs-on: ubuntu-latest
     needs: build-wasm
     steps:
@@ -156,7 +156,9 @@ jobs:
           name: wasm
           path: src/
       - run: pnpm install --frozen-lockfile
-      - run: pnpm tsc
+      - name: Install Just
+        uses: taiki-e/install-action@just
+      - run: just build
 
   typos:
     runs-on: ubuntu-latest
