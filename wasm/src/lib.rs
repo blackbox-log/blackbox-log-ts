@@ -26,8 +26,8 @@ extern "C" {
     fn throw(message: str::OwnedWasmStr) -> !;
 }
 
-#[allow(clippy::undocumented_unsafe_blocks)]
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[allow(clippy::undocumented_unsafe_blocks)]
 fn throw_headers_parse_error(err: blackbox_log::headers::ParseError) -> ! {
     let message = err.to_string().into();
     unsafe { throw(message) };
