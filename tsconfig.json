@@ -3,20 +3,21 @@
 	"compilerOptions": {
 		"target": "esnext",
 		"module": "esnext",
-		"useDefineForClassFields": true,
 		"lib": ["esnext", "dom"],
 		"moduleResolution": "node",
 		"strict": true,
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"esModuleInterop": true,
-		"noEmit": true,
+		"declaration": true,
+		"declarationDir": "dist",
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noImplicitReturns": true,
 		"importsNotUsedAsValues": "error",
 		"experimentalDecorators": true,
 		"exactOptionalPropertyTypes": true,
+		"useDefineForClassFields": true,
 		"types": ["vite/client"]
 	},
 	"include": ["src"]

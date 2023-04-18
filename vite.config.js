@@ -1,7 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { defineConfig } from 'vite';
 import { viteStaticCopy as staticCopy } from 'vite-plugin-static-copy';
-import dts from 'vite-plugin-dts';
 
 // Vite default + wasm sign-extension, multi-value, and bulk memory
 export const target = [
@@ -16,6 +15,7 @@ export const target = [
 
 export default defineConfig({
 	build: {
+		emptyOutDir: false,
 		lib: {
 			entry: ['main', 'async', 'sync'].map((s) => `src/entry/${s}.ts`),
 			formats: ['es'],
@@ -49,9 +49,6 @@ export default defineConfig({
 			watch: {
 				reloadPageOnChange: true,
 			},
-		}),
-		dts({
-			rollupTypes: true,
 		}),
 	],
 });

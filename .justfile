@@ -6,10 +6,16 @@ fmt:
     pnpm prettier --write .
 
 # Check formatting, lints, and types
-check:
+check: && lint typecheck
     pnpm prettier --check .
+
+# Run eslint
+lint:
     pnpm eslint src
-    pnpm tsc
+
+# Run typechecking
+typecheck:
+    pnpm tsc --noEmit
 
 # Run the dev server
 dev *args='':
@@ -17,7 +23,8 @@ dev *args='':
 
 # Check types and build for production
 build:
-    pnpm tsc
+    rm -rf dist/
+    pnpm tsc --emitDeclarationOnly
     pnpm vite build
     pnpm vite --config vite.worker.config.js build
 

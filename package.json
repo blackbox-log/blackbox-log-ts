@@ -9,15 +9,15 @@
 	],
 	"exports": {
 		".": {
-			"types": "./dist/main.d.ts",
+			"types": "./dist/entry/main.d.ts",
 			"default": "./dist/main.js"
 		},
 		"./async": {
-			"types": "./dist/async.d.ts",
+			"types": "./dist/entry/async.d.ts",
 			"default": "./dist/async.js"
 		},
 		"./sync": {
-			"types": "./dist/sync.d.ts",
+			"types": "./dist/entry/sync.d.ts",
 			"default": "./dist/sync.js"
 		},
 		"./wasm": "./dist/blackbox-log.wasm",
@@ -43,7 +43,6 @@
 		"typedoc": "^0.24.1",
 		"typescript": "^4.9.5",
 		"vite": "^4.0.0",
-		"vite-plugin-dts": "^2.0.0",
 		"vite-plugin-static-copy": "^0.13.0"
 	},
 	"packageManager": "pnpm@8.2.0"
