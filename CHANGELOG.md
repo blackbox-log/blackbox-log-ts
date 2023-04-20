@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+-   Inline worker file in main export after it is compiled
+
 ## [0.1.1] - 2023-04-18
 
 ### Fixed

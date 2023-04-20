@@ -25,8 +25,8 @@ dev *args='':
 build:
     rm -rf dist/
     pnpm tsc --emitDeclarationOnly
-    pnpm vite build
     pnpm vite --config vite.worker.config.js build
+    pnpm vite build
 
 # Build API documentation
 doc: _doc
