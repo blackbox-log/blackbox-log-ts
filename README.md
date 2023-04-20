@@ -33,6 +33,9 @@ but do require the WebAssembly (and worker for `/async`) to be loaded separately
 Below are examples of each API. Also check out the [full API docs][docs] built from the latest
 `main` branch.
 
+> **Warning**: The `async` API does not yet work on Node.js as it is only set up to use Web Workers,
+> not Node's `worker_threads`. This will be fixed in a future release.
+
 ### Sync API
 
 [API docs](https://blackbox-log.github.io/blackbox-log-ts/modules/sync.html)
