@@ -37,6 +37,9 @@ rules:
   import/no-cycle:
     - warn
     - ignoreExternal: true
+  import/no-unresolved:
+    - error
+    - ignore: ['^#']
   tsdoc/syntax: warn
 settings:
   import/resolver:
