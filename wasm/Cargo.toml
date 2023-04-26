@@ -13,7 +13,7 @@ crate-type = ["cdylib", "rlib"]
 time = "0.3.20"
 
 [dependencies.blackbox-log]
-version = "0.3.0"
+version = "0.3.1"
 # git = "https://github.com/blackbox-log/blackbox-log"
 # path = "../../blackbox-log"
 
