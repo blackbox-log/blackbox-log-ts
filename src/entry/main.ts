@@ -10,6 +10,7 @@ export async function getWasm(): Promise<WebAssembly.Module> {
 
 	const bytes = new Uint8Array(decoded.length);
 	for (let i = 0; i < decoded.length; i++) {
+		// eslint-disable-next-line unicorn/prefer-code-point
 		bytes[i] = decoded.charCodeAt(i);
 	}
 

@@ -12,7 +12,7 @@ export type WasmStr = OptionalWasmStr & { [notNull]: true };
 let cachedDecoder: undefined | TextDecoder;
 function getDecoder(): TextDecoder {
 	if (cachedDecoder === undefined) {
-		cachedDecoder = new TextDecoder('utf-8', {
+		cachedDecoder = new TextDecoder('utf8', {
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			ignoreBOM: true,
 			fatal: true,

@@ -7,6 +7,7 @@ extends:
   - plugin:@typescript-eslint/strict
   - xo
   - xo-typescript
+  - plugin:unicorn/recommended
   - plugin:prettier/recommended
 plugins:
   - eslint-plugin-tsdoc
@@ -41,6 +42,11 @@ rules:
     - error
     - ignore: ['^#']
   tsdoc/syntax: warn
+  unicorn/custom-error-definition: error
+  unicorn/prevent-abbreviations: off
+  unicorn/switch-case-braces:
+    - warn
+    - avoid
 settings:
   import/resolver:
     typescript: true

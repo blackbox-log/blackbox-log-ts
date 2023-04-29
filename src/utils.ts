@@ -3,7 +3,7 @@ export function unreachable(_: never): never {
 }
 
 const noopDelete = () => false;
-const noopClear = () => undefined;
+const noopClear = () => undefined; // eslint-disable-line unicorn/no-useless-undefined
 export function freezeSet<T>(set: Set<T>): ReadonlySet<T> {
 	set.add = () => set;
 	set.delete = noopDelete;

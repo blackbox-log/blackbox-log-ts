@@ -4,7 +4,7 @@ import { ManagedPointer } from './pointers';
 import { getOptionalStr, getStr, getStrSlice } from './str';
 import { ParserEventKind } from '../data';
 import { FirmwareKind, Version } from '../headers';
-import { ParseError } from '../parseError';
+import { ParseError } from '../parse-error';
 import { freezeMap, freezeSet, unreachable } from '../utils';
 
 import type { RawPointer } from './pointers';
@@ -14,7 +14,7 @@ import type { ParserEvent, Stats } from '../data';
 import type { InternalFrameDef } from '../headers';
 import type { DataParser, LogFile, LogHeaders } from '../sync';
 
-export type { RawPointer, ManagedPointer };
+export type { RawPointer, ManagedPointer } from './pointers';
 
 export type WasmObject = {
 	isAlive: boolean;

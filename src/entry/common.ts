@@ -1,5 +1,5 @@
 export { FirmwareKind, Version } from '../headers';
-export { ParseError } from '../parseError';
+export { ParseError } from '../parse-error';
 export { Unit } from '../units';
 
 export type {
