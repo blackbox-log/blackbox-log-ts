@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+-   Do not throw an error when calling `*Parser.loadFile` with a buffer of length 0
+
 ## [0.1.2] - 2023-04-20
 
 ### Fixed

@@ -44,6 +44,10 @@ impl<T> OwnedSlice<T> {
 
     /// Allocate uninitialized backing storage for an `OwnedSlice`.
     pub(crate) fn alloc(len: usize) -> Result<NonNull<T>, AllocError> {
+        if len == 0 {
+            return Ok(NonNull::dangling());
+        }
+
         let layout = Self::layout(len)?;
 
         if layout.size() == 0 {
