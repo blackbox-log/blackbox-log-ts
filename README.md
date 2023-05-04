@@ -17,9 +17,9 @@ Install from NPM under the name `blackbox-log`:
 $ pnpm add blackbox-log  # or npm or yarn
 ```
 
-This package uses [conditional exports]. TypeScript gained support for this in [version 5.0][ts 5.0]
-with `"moduleResolution": "bundler"` or in [version 4.7][ts 4.7] with
-`"moduleResolution": "nodenext"`.
+This package uses [conditional exports]. To make use of the included types, you will need
+`"moduleResolution": "nodenext"` in your `tsconfig.json` and at least TypeScript [version
+4.7][ts 4.7]. It will also work with the new `"moduleResolution": "bundler"` introduced in [TS 5.0].
 
 ## Usage
 
