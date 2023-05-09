@@ -47,7 +47,7 @@ set-start:
 multivalue:
     multi-value-reverse-polyfill {{ wasmFile }} \
         'data_new i32 i32' \
-        'data_counts i32 i32 i32 i32 i32' \
+        'data_stats i32 i32 i32 i32 i32 f32' \
         'headers_firmwareRevision i32 i32' \
         'headers_firmwareDate i32 i32 i32 i32 i32 i32 i32' \
         'headers_firmwareVersion i32 i32 i32' \

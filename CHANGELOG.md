@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+-   [`Stats.progress`](https://docs.rs/blackbox-log/0.3.1/blackbox_log/data/struct.Stats.html#structfield.progress)
+
 ### Changed
 
 -   Remove `type` restriction from export of `ParserEventKind`

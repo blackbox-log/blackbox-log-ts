@@ -56,7 +56,7 @@ export type WasmExports = {
 
 	data_free: (ptr: number) => void;
 	data_new: (headers: number) => [dataParserPtr: number, parserEventPtr: number];
-	data_counts: (ptr: number) => [number, number, number, number, number];
+	data_stats: (ptr: number) => [number, number, number, number, number, number];
 	data_next: (ptr: RawPointer<DataParser>) => void;
 };
 /* eslint-enable @typescript-eslint/naming-convention */
@@ -266,9 +266,10 @@ export class Wasm {
 	}
 
 	dataStats(data: RawPointer<DataParser>): Stats {
-		const [event, main, slow, gps, gpsHome] = this.#wasm.data_counts(data);
+		const [event, main, slow, gps, gpsHome, progress] = this.#wasm.data_stats(data);
 		return {
 			counts: { event, main, slow, gps, gpsHome },
+			progress
 		};
 	}
 

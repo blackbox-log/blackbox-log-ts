@@ -1,7 +1,7 @@
 use std::mem::ManuallyDrop;
 use std::pin::Pin;
 
-use blackbox_log::data::FrameCounts;
+use blackbox_log::data::Stats;
 use blackbox_log::frame::{Frame, GpsFrame, MainFrame, SlowFrame};
 use blackbox_log::prelude::*;
 use blackbox_log::units::{si, Time};
@@ -44,8 +44,8 @@ impl WasmDataParser {
         parsed
     }
 
-    fn frame_counts(&self) -> FrameCounts {
-        self.parser.stats().counts
+    fn stats(&self) -> &Stats {
+        self.parser.stats()
     }
 
     fn next(&mut self) {
@@ -234,6 +234,24 @@ where
 {
 }
 
+#[repr(C)]
+struct WasmDataStats {
+    count_event: usize,
+    count_main: usize,
+    count_slow: usize,
+    count_gps: usize,
+    count_gps_home: usize,
+    progress: f32,
+}
+
+// SAFETY: repr(C) & where bounds for each field
+unsafe impl WasmByValue for WasmDataStats
+where
+    <usize as WasmFfi>::Ffi: WasmByValue,
+    <f32 as WasmFfi>::Ffi: WasmByValue,
+{
+}
+
 wasm_export!(free data_free: Box<WasmDataParser>);
 wasm_export! {
     fn data_new(headers: ref Box<WasmHeaders>) -> DataNew {
@@ -242,16 +260,17 @@ wasm_export! {
         DataNew(data.into_ffi(),result.into_ffi())
     }
 
-    fn data_counts(parser: ref Box<WasmDataParser>) -> [usize; 5] {
-        let counts = parser.frame_counts();
+    fn data_stats(parser: ref Box<WasmDataParser>) -> WasmDataStats {
+        let stats = parser.stats();
 
-        [
-            counts.event,
-            counts.main,
-            counts.slow,
-            counts.gps,
-            counts.gps_home,
-        ]
+        WasmDataStats {
+            count_event: stats.counts.event,
+            count_main: stats.counts.main,
+            count_slow: stats.counts.slow,
+            count_gps: stats.counts.gps,
+            count_gps_home: stats.counts.gps_home,
+            progress: stats.progress,
+        }
     }
 
     fn data_next(parser: ref_mut Box<WasmDataParser>) {

@@ -38,4 +38,6 @@ export type Stats = {
 		gps: number;
 		gpsHome: number;
 	};
+	/** The approximate percentage of the log data parsed so far as a number in the range `[0,1]`. */
+	progress: number;
 };
