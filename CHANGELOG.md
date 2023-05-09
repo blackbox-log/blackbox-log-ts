@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+-   Remove `type` restriction from export of `ParserEventKind`
+
 ## [0.1.3] - 2023-05-04
 
 ### Fixed
