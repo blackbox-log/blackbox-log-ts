@@ -30,9 +30,9 @@ export type WasmExports = {
 	sliceStr_free: (length: number, ptr: number) => void;
 
 	file_free: (ptr: number) => void;
-	file_new: (ptr: number, length: number) => number;
+	file_new: (ptr: number, length: number) => RawPointer<LogFile>;
 	file_logCount: (ptr: number) => number;
-	file_getHeaders: (ptr: number, log: number) => number;
+	file_getHeaders: (ptr: number, log: number) => RawPointer<LogHeaders>;
 	file_getLog: (ptr: number, log: number) => number;
 
 	headers_free: (ptr: number) => void;
@@ -55,7 +55,7 @@ export type WasmExports = {
 	unknownHeaders_free: (length: number, ptr: number) => void;
 
 	data_free: (ptr: number) => void;
-	data_new: (headers: number) => [dataParserPtr: number, parserEventPtr: number];
+	data_new: (headers: number) => [RawPointer<DataParser>, RawPointer<ParserEvent>];
 	data_stats: (ptr: number) => [number, number, number, number, number, number];
 	data_next: (ptr: RawPointer<DataParser>) => void;
 };
@@ -143,7 +143,7 @@ export class Wasm {
 		const buffer = new Uint8Array(this.#wasm.memory.buffer, dataPtr, data.length);
 		buffer.set(data);
 
-		const filePtr = this.#wasm.file_new(dataPtr, data.length) as RawPointer<LogFile>;
+		const filePtr = this.#wasm.file_new(dataPtr, data.length);
 		return new ManagedPointer(filePtr, this.#wasm.file_free);
 	}
 
@@ -152,7 +152,7 @@ export class Wasm {
 	}
 
 	newHeaders(file: RawPointer<LogFile>, log: number): ManagedPointer<LogHeaders> {
-		const ptr = this.#wasm.file_getHeaders(file, log) as RawPointer<LogHeaders>;
+		const ptr = this.#wasm.file_getHeaders(file, log);
 		this.#frameDefs.set(ptr, {});
 		return new ManagedPointer(ptr, this.freeHeaders.bind(this));
 	}
@@ -256,10 +256,7 @@ export class Wasm {
 		const slow = this.frameDef(headers, 'slow');
 		const gps = this.frameDef(headers, 'gps');
 
-		const [data, eventPtr] = this.#wasm.data_new(headers) as [
-			RawPointer<DataParser>,
-			RawPointer<ParserEvent>,
-		];
+		const [data, eventPtr] = this.#wasm.data_new(headers);
 
 		this.#dataParserInfo.set(data, { main, slow, gps, eventPtr });
 		return new ManagedPointer(data, this.#wasm.data_free);
