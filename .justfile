@@ -23,9 +23,7 @@ dev *args='':
 
 # Check types and build for production
 build:
-    rm -rf dist/
     pnpm tsc --emitDeclarationOnly
-    pnpm vite --config vite.worker.config.js build
     pnpm vite build
 
 # Build API documentation

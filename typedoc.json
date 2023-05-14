@@ -1,6 +1,6 @@
 {
 	"$schema": "https://typedoc.org/schema.json",
-	"entryPoints": ["./src/entry/main.ts", "./src/entry/async.ts", "./src/entry/sync.ts"],
+	"entryPoints": ["./src/entry/main.ts", "./src/entry/slim.ts"],
 	"out": "./docs",
 	"excludePrivate": true,
 	"excludeInternal": true,

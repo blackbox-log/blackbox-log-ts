@@ -58,8 +58,8 @@
 		</p>
 
 		<script async type="module">
-			import { AsyncParser, getWasm, worker } from './src/entry/main.ts';
-			const parser = new AsyncParser(getWasm(), worker);
+			import { Parser, getWasm } from './src/entry/main.ts';
+			const parser = await Parser.init(getWasm());
 
 			let file;
 
@@ -72,12 +72,11 @@
 				updateMemory();
 
 				const buffer = await upload.files[0].arrayBuffer();
-				file = await parser.loadFile(buffer);
+				file = parser.loadFile(buffer);
 
-				const logCount = await file.logCount;
-				logNum.value = logCount > 0 ? 1 : undefined;
-				logNum.max = logCount;
-				document.querySelector('#log-count').innerText = logCount;
+				logNum.value = file.logCount > 0 ? 1 : undefined;
+				logNum.max = file.logCount;
+				document.querySelector('#log-count').innerText = file.logCount;
 				logHandler();
 			}
 
@@ -103,54 +102,39 @@
 				logNum.disabled = false;
 				logInfo.classList.remove('hidden');
 
-				const headers = await file.parseHeaders(value - 1);
-				document.querySelector('#firmware-revision').innerText =
-					await headers.firmwareRevision;
-				document.querySelector('#firmware-kind').innerText = await headers.firmwareKind;
+				const headers = file.parseHeaders(value - 1);
+				document.querySelector('#firmware-revision').innerText = headers.firmwareRevision;
+				document.querySelector('#firmware-kind').innerText = headers.firmwareKind;
 				document.querySelector('#firmware-date').innerText =
-					(await headers.firmwareDate)?.toLocaleString() ?? '';
-				console.log(await headers.firmwareDate);
-				document.querySelector('#firmware-version').innerText =
-					await headers.firmwareVersion;
-				document.querySelector('#board-info').innerText = (await headers.boardInfo) ?? '';
-				document.querySelector('#craft-name').innerText = (await headers.craftName) ?? '';
-				document.querySelector('#debug-mode').innerText = await headers.debugMode;
+					headers.firmwareDate?.toLocaleString() ?? '';
+				document.querySelector('#firmware-version').innerText = headers.firmwareVersion;
+				document.querySelector('#board-info').innerText = headers.boardInfo ?? '';
+				document.querySelector('#craft-name').innerText = headers.craftName ?? '';
+				document.querySelector('#debug-mode').innerText = headers.debugMode;
 				document.querySelector('#disabled-fields').innerText = Array.from(
-					await headers.disabledFields,
+					headers.disabledFields,
 				).join(', ');
-				document.querySelector('#features').innerText = Array.from(
-					await headers.features,
-				).join(', ');
-				document.querySelector('#pwm-protocol').innerText = await headers.pwmProtocol;
+				document.querySelector('#features').innerText = Array.from(headers.features).join(
+					', ',
+				);
+				document.querySelector('#pwm-protocol').innerText = headers.pwmProtocol;
 
-				const unknown = await headers.unknown;
-				document.querySelector('#unknown-count').innerText = unknown.size;
-				console.log('unknown headers:', unknown);
+				document.querySelector('#unknown-count').innerText = headers.unknown.size;
+				console.log('unknown headers:', headers.unknown);
 
 				updateMemory();
 
-				const dataParser = await headers.getDataParser();
+				const dataParser = headers.getDataParser();
 				updateCounts(dataParser);
 				updateMemory();
 
-				const currentParseHandle = (parseHandle = Symbol());
-				let i = 0;
-				for await (const _ of dataParser) {
-					if (currentParseHandle !== parseHandle) {
-						break;
-					}
-
-					i = (i + 1) % 100;
-					if (i === 0) {
-						updateCounts(dataParser);
-					}
-				}
+				while (!dataParser.next().done) {}
 				updateCounts(dataParser);
 				updateMemory();
 			}
 
 			async function updateCounts(parser) {
-				const { counts } = await parser.stats();
+				const { counts } = parser.stats();
 				document.querySelector('#event-count').innerText = counts.event;
 				document.querySelector('#main-count').innerText = counts.main;
 				document.querySelector('#slow-count').innerText = counts.slow;
@@ -160,7 +144,7 @@
 
 			async function updateMemory() {
 				if (file) {
-					const mib = Math.round(((await file.memorySize) / 1024 / 1024) * 100) / 100;
+					const mib = Math.round((file.memorySize / 1024 / 1024) * 100) / 100;
 					memory.innerText = `${mib} MiB`;
 				}
 			}

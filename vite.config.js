@@ -19,9 +19,8 @@ export const target = [
 
 export default defineConfig({
 	build: {
-		emptyOutDir: false,
 		lib: {
-			entry: ['main', 'async', 'sync'].map((s) => `src/entry/${s}.ts`),
+			entry: ['main', 'slim'].map((s) => `src/entry/${s}.ts`),
 			formats: ['es'],
 			fileName: (_format, entry) => `${entry}.js`,
 		},
@@ -44,15 +43,6 @@ export default defineConfig({
 					code: `export default '${wasm}'`,
 					map: { mappings: '' },
 				};
-			},
-		},
-		{
-			name: 'inline-worker',
-			async resolveId(id) {
-				if (id === '#worker?inline') {
-					const file = isDev ? './src/worker.ts' : './dist/worker.js';
-					return await this.resolve(resolve(`${file}?url`));
-				}
 			},
 		},
 		staticCopy({

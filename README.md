@@ -23,33 +23,28 @@ This package uses [conditional exports]. To make use of the included types, you 
 
 ## Usage
 
-This package exposes both a synchronous, single-threaded API and an asynchronous, multi-threaded
-API. Both are very similar and are designed to parallel [the Rust API][rust docs].
+See [the full API docs][docs] built from the latest `main` branch. The API is designed to parallel
+[the Rust API][rust docs].
 
-Both APIs are provided by the default entrypoint along with the inlined WebAssembly & worker. Or,
-using the `blackbox-log/sync` or `blackbox-log/async` entrypoints will likely reduce bundle size,
-but do require the WebAssembly (and worker for `/async`) to be loaded separately.
+The default export (ie importing from `blackbox-log`) provides the full API along with the inlined
+WebAssembly. Alternatively, importing from `blackbox-log/slim` may reduce bundle size, but does
+require the WebAssembly file (`blackbox-log/wasm`) to be loaded separately and served with the
+`application/wasm` mime type.
 
-Below are examples of each API. Also check out the [full API docs][docs] built from the latest
-`main` branch.
-
-> **Warning**: The `async` API does not yet work on Node.js as it is only set up to use Web Workers,
-> not Node's `worker_threads`. This will be fixed in a future release.
-
-### Sync API
-
-[API docs](https://blackbox-log.github.io/blackbox-log-ts/modules/sync.html)
+### Example
 
 ```javascript
 import { Parser, getWasm } from 'blackbox-log';
+
 // Initialize the parser with the inlined WebAssembly module
 const parser = await Parser.init(getWasm());
 
 // Or:
 
-import Parser from 'blackbox-log/sync';
+import { Parser } from 'blackbox-log/slim';
 import wasmUrl from 'blackbox-log/wasm?url'; // This is for vite; check your bundler docs
-// Download and init from the url
+
+// Download and initialize from the url
 const parser = await Parser.init(wasmUrl);
 
 // ---
@@ -70,49 +65,6 @@ console.log(
 
 const data = await headers.getDataParser();
 for (const { kind, data } of data) {
-	// Handle each event/frame
-}
-```
-
-See the [`ParserEvent`] docs for details on the type of `kind` and `data`.
-
-### Async API
-
-[API docs](https://blackbox-log.github.io/blackbox-log-ts/modules/async.html)
-
-```javascript
-import { AsyncParser, getWasm, worker } from 'blackbox-log';
-// Initialize the parser with the inlined WebAssembly module & worker
-const parser = await Parser.init(getWasm(), worker);
-
-// Or:
-
-import AsyncParser from 'blackbox-log/async';
-import wasmUrl from 'blackbox-log/wasm?url'; // This is for vite; check your bundler docs
-import workerUrl from 'blackbox-log/wasm?url';
-const parser = await AsyncParser.init(wasmUrl, workerUrl);
-
-// ---
-
-const rawFile = new File(); // From a file input on the web, the filesystem in Node, etc
-const buffer = await rawFile.arrayBuffer();
-
-const file = await parser.loadFile(buffer);
-const logCount = await file.logCount;
-const log = 0;
-
-const headers = await file.parseHeaders(log); // Parse just the headers of the first log
-const fwKind = await headers.firmwareKind;
-const fwVersion = await headers.firmwareVersion;
-const craft = await headers.craftName;
-console.log(
-	`Log ${log + 1} of ${logCount + 1}: ${fwKind} v${fwVersion}`.concat(
-		craft ? ` named '${craft}'` : '',
-	),
-);
-
-const data = await headers.getDataParser();
-for await (const { kind, data } of data) {
 	// Handle each event/frame
 }
 ```

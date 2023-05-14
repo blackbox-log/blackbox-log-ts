@@ -21,16 +21,11 @@
 			"types": "./dist/entry/main.d.ts",
 			"default": "./dist/main.js"
 		},
-		"./async": {
-			"types": "./dist/entry/async.d.ts",
-			"default": "./dist/async.js"
+		"./slim": {
+			"types": "./dist/entry/slim.d.ts",
+			"default": "./dist/slim.js"
 		},
-		"./sync": {
-			"types": "./dist/entry/sync.d.ts",
-			"default": "./dist/sync.js"
-		},
-		"./wasm": "./dist/blackbox-log.wasm",
-		"./worker": "./dist/worker.js"
+		"./wasm": "./dist/blackbox-log.wasm"
 	},
 	"dependencies": {
 		"comlink": "^4.4.1",
@@ -48,7 +43,6 @@
 		"eslint-plugin-prettier": "^4.2.1",
 		"eslint-plugin-tsdoc": "^0.2.17",
 		"eslint-plugin-unicorn": "^47.0.0",
-		"module-workers-polyfill": "^0.3.2",
 		"prettier": "^2.8.7",
 		"typedoc": "^0.24.4",
 		"typescript": "^5.0.4",

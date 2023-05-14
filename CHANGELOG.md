@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Changed
+
+-   `blackbox-log/sync` -> `/slim`
+
+### Removed
+
+-   Default export from slim
+-   `blackbox-log/async`: Multi-threaded async api
+
 ## [0.1.5] - 2023-05-16
 
 ### Fixed

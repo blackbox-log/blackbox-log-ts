@@ -46,9 +46,6 @@ devDependencies:
   eslint-plugin-unicorn:
     specifier: ^47.0.0
     version: 47.0.0(eslint@8.38.0)
-  module-workers-polyfill:
-    specifier: ^0.3.2
-    version: 0.3.2
   prettier:
     specifier: ^2.8.7
     version: 2.8.7
@@ -1834,10 +1831,6 @@ packages:
     engines: {node: '>=16 || 14 >=14.17'}
     dependencies:
       brace-expansion: 2.0.1
-    dev: true
-
-  /module-workers-polyfill@0.3.2:
-    resolution: {integrity: sha512-zcEMj8vUGYu1Tc5s2GK84MBzRSweec/Ef6F7phRF8QlTfTf2upFNsR3W0lDhvN2E6o1TTXbFIYynD0rQSlynPw==}
     dev: true
 
   /ms@2.1.2:
