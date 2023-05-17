@@ -42,7 +42,7 @@ export function getGpsData(memory: DataView, start: number, def: InternalFrameDe
 }
 
 function getTime(memory: DataView, start: number): number {
-	return memory.getFloat64(start);
+	return memory.getFloat64(start, true);
 }
 
 function getFields(memory: DataView, start: number, def: InternalFrameDef): FrameFields {

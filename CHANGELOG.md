@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+-   Frame timestamps
+
 ## [0.1.4] - 2023-05-10
 
 ### Added
