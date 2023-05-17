@@ -83,7 +83,7 @@ export type DataParserId = number & { [dataParserId]: true };
 export class Wasm {
 	static async init(init: WasmInit): Promise<Wasm> {
 		let instance;
-		let exports: WasmExports | undefined;
+		let exports: WasmExports | undefined; // eslint-disable-line prefer-const
 
 		const imports = {
 			main: {
@@ -117,7 +117,8 @@ export class Wasm {
 			instance = wasmModule.instance;
 		}
 
-		return new Wasm(instance.exports as WasmExports);
+		exports = instance.exports as WasmExports;
+		return new Wasm(exports);
 	}
 
 	readonly #wasm;

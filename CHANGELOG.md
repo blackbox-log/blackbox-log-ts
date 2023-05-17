@@ -4,6 +4,7 @@
 
 ### Fixed
 
+-   Include panic messages in errors thrown due to a panic in WebAssembly
 -   Frame timestamps
 
 ## [0.1.4] - 2023-05-10
