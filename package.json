@@ -28,7 +28,6 @@
 		"./wasm": "./dist/blackbox-log.wasm"
 	},
 	"dependencies": {
-		"comlink": "^4.4.1",
 		"typescript-memoize": "^1.1.1"
 	},
 	"devDependencies": {
