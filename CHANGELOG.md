@@ -2,14 +2,16 @@
 
 ## [Unreleased]
 
+### [0.2.0] - 2023-06-09
+
 ### Changed
 
--   `blackbox-log/sync` -> `/slim`
+-   Renamed `blackbox-log/sync` import to `blackbox-log/slim`
 
 ### Removed
 
--   Default export from slim
--   `blackbox-log/async`: Multi-threaded async api
+-   Multi-threaded async api (`blackbox-log/async`)
+-   Default export from `blackbox-log/slim`. It is still exported as `Parser`
 
 ## [0.1.5] - 2023-05-16
 
@@ -50,7 +52,8 @@
 
 Initial release
 
-[unreleased]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.1.5...HEAD
+[unreleased]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.1.2...v0.1.3
