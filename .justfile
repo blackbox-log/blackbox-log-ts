@@ -23,8 +23,8 @@ dev *args='':
 
 # Check types and build for production
 build:
-    pnpm tsc --emitDeclarationOnly
     pnpm vite build
+    pnpm tsc --emitDeclarationOnly
 
 # Build API documentation
 doc: _doc
