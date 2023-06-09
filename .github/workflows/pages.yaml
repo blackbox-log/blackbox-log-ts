@@ -1,14 +1,8 @@
 name: Deploy TypeDoc to Pages
 on:
   push:
-    branches:
-      - main
-    paths:
-      - pnpm-lock.yaml
-      - 'src/**'
-      - README.md
-      - typedoc.json
-      - .github/workflows/pages.yaml
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 permissions:

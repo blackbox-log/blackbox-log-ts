@@ -23,8 +23,8 @@ This package uses [conditional exports]. To make use of the included types, you 
 
 ## Usage
 
-See [the full API docs][docs] built from the latest `main` branch. The API is designed to parallel
-[the Rust API][rust docs].
+See [the full API docs][docs] built from the latest release. The API is designed to parallel [the
+Rust API][rust docs].
 
 The default export (ie importing from `blackbox-log`) provides the full API along with the inlined
 WebAssembly. Alternatively, importing from `blackbox-log/slim` may reduce bundle size, but does
