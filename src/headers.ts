@@ -1,6 +1,7 @@
 import { Memoize as memoize } from 'typescript-memoize';
 
 import { DataParser } from './data';
+import { FrameKind } from './wasm/frames';
 
 import type { DataParserOptions } from './data';
 import type { LogFile } from './file';
@@ -62,7 +63,7 @@ export class LogHeaders implements WasmObject {
 
 	#getMainFrameDef(): InternalFrameDef {
 		if (this.#_mainFrameDef === undefined) {
-			this.#_mainFrameDef = this.#wasm.frameDef('headers', this.#ptr.ptr, 'main');
+			this.#_mainFrameDef = this.#wasm.frameDef('headers', this.#ptr.ptr, FrameKind.Main);
 		}
 
 		return this.#_mainFrameDef;
@@ -74,7 +75,7 @@ export class LogHeaders implements WasmObject {
 
 	#getSlowFrameDef(): InternalFrameDef {
 		if (this.#_slowFrameDef === undefined) {
-			this.#_slowFrameDef = this.#wasm.frameDef('headers', this.#ptr.ptr, 'slow');
+			this.#_slowFrameDef = this.#wasm.frameDef('headers', this.#ptr.ptr, FrameKind.Slow);
 		}
 
 		return this.#_slowFrameDef;
@@ -86,7 +87,7 @@ export class LogHeaders implements WasmObject {
 
 	#getGpsFrameDef(): InternalFrameDef {
 		if (this.#_gpsFrameDef === undefined) {
-			this.#_gpsFrameDef = this.#wasm.frameDef('headers', this.#ptr.ptr, 'gps');
+			this.#_gpsFrameDef = this.#wasm.frameDef('headers', this.#ptr.ptr, FrameKind.Gps);
 		}
 
 		return this.#_gpsFrameDef;

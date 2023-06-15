@@ -1,12 +1,11 @@
-use blackbox_log::frame::{FieldDef, FrameDef};
 use blackbox_log::headers::{Firmware, FirmwareVersion};
 use blackbox_log::prelude::*;
 use blackbox_log::Reader;
 use time::PrimitiveDateTime;
 
 use crate::data::{WasmDataParser, WasmFieldFilterSetBuilder};
+use crate::frames::{WasmFrameDef, WasmFrameKind};
 use crate::str::WasmStr;
-use crate::units::WasmUnit;
 use crate::{OwnedSlice, Shared, WasmByValue};
 
 pub struct WasmHeaders {
@@ -68,39 +67,6 @@ impl WasmHeaders {
             })
             .collect::<Vec<_>>();
         entries.into()
-    }
-}
-
-#[derive(Default)]
-#[repr(transparent)]
-pub(crate) struct WasmFrameDef(OwnedSlice<WasmFieldDef>);
-
-impl_boxed_wasm_ffi!(WasmFrameDef);
-
-#[repr(C)]
-struct WasmFieldDef {
-    name: WasmStr,
-    signed: bool,
-    unit: WasmUnit,
-}
-
-impl<'data, F: FrameDef<'data>> From<&F> for WasmFrameDef {
-    fn from(frame: &F) -> Self {
-        let mut slice = OwnedSlice::new_zeroed(frame.len());
-
-        for (i, out) in slice.iter_mut().enumerate() {
-            let FieldDef {
-                name, signed, unit, ..
-            } = frame.get(i).unwrap();
-
-            *out = WasmFieldDef {
-                name: name.into(),
-                signed,
-                unit: unit.into().into(),
-            };
-        }
-
-        Self(slice)
     }
 }
 
@@ -198,8 +164,13 @@ wasm_export!(free headers_free: Box<WasmHeaders>);
 wasm_export!(free frameDef_free: Box<WasmFrameDef>);
 wasm_export!(free unknownHeaders_free: OwnedSlice<UnknownHeader>);
 wasm_export! {
-    fn headers_mainDef(headers: ref Box<WasmHeaders>) -> Box<WasmFrameDef> {
-        Box::new(headers.main_def())
+    fn headers_frameDef(headers: ref Box<WasmHeaders>, frame: owned WasmFrameKind) -> Box<WasmFrameDef> {
+        let def = match frame {
+            WasmFrameKind::Main => headers.main_def(),
+            WasmFrameKind::Slow => headers.slow_def(),
+            WasmFrameKind::Gps => headers.gps_def(),
+        };
+        Box::new(def)
     }
 
     fn headers_slowDef(headers: ref Box<WasmHeaders>) -> Box<WasmFrameDef> {

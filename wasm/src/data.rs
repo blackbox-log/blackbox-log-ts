@@ -9,7 +9,8 @@ use blackbox_log::prelude::*;
 use blackbox_log::units::{si, Time};
 use blackbox_log::{FieldFilterSet, Reader};
 
-use crate::headers::{WasmFrameDef, WasmHeaders};
+use crate::frames::{WasmFrameDef, WasmFrameKind};
+use crate::headers::WasmHeaders;
 use crate::owned_slice::AllocError;
 use crate::str::WasmStr;
 use crate::{IntoWasmFfi, OwnedSlice, Shared, WasmByValue, WasmFfi};
@@ -100,10 +101,16 @@ impl WasmFieldFilterSetBuilder {
     ///
     /// `fields` must come from a `WasmFieldFilterSetBuilder` and `str` must be
     /// allocated in the same struct's `arena`.
-    unsafe fn push(fields: &mut Option<Vec<&'static str>>, str: WasmStr) {
+    unsafe fn push(&mut self, frame: WasmFrameKind, str: WasmStr) {
         let str: &str = str.deref();
         let str: &'static str = std::mem::transmute(str);
-        fields.as_mut().unwrap().push(str);
+
+        let fields = match frame {
+            WasmFrameKind::Main => self.main.as_mut(),
+            WasmFrameKind::Slow => self.slow.as_mut(),
+            WasmFrameKind::Gps => self.gps.as_mut(),
+        };
+        fields.unwrap().push(str);
     }
 
     fn build(self) -> FieldFilterSet {
@@ -339,16 +346,13 @@ wasm_export! {
         DataNew(data.into_ffi(),result.into_ffi())
     }
 
-    fn data_mainDef(parser: ref Box<WasmDataParser>) -> Box<WasmFrameDef> {
-        Box::new(parser.main_def())
-    }
-
-    fn data_slowDef(parser: ref Box<WasmDataParser>) -> Box<WasmFrameDef> {
-        Box::new(parser.slow_def())
-    }
-
-    fn data_gpsDef(parser: ref Box<WasmDataParser>) -> Box<WasmFrameDef> {
-        Box::new(parser.gps_def())
+    fn data_frameDef(parser: ref Box<WasmDataParser>, frame: owned WasmFrameKind) -> Box<WasmFrameDef> {
+        let def = match frame {
+            WasmFrameKind::Main => parser.main_def(),
+            WasmFrameKind::Slow => parser.slow_def(),
+            WasmFrameKind::Gps => parser.gps_def(),
+        };
+        Box::new(def)
     }
 
     fn data_stats(parser: ref Box<WasmDataParser>) -> WasmDataStats {
@@ -384,15 +388,11 @@ wasm_export! {
         FieldFilterSetBuilderNew(Box::into_raw(builder), ptr)
     }
 
-    fn filter_main(builder: ref_mut Box<WasmFieldFilterSetBuilder>, str: owned WasmStr) {
-        WasmFieldFilterSetBuilder::push(&mut builder.main, str);
-    }
-
-    fn filter_slow(builder: ref_mut Box<WasmFieldFilterSetBuilder>, str: owned WasmStr) {
-        WasmFieldFilterSetBuilder::push(&mut builder.slow, str);
-    }
-
-    fn filter_gps(builder: ref_mut Box<WasmFieldFilterSetBuilder>, str: owned WasmStr) {
-        WasmFieldFilterSetBuilder::push(&mut builder.gps, str);
+    fn filter_push(
+        builder: ref_mut Box<WasmFieldFilterSetBuilder>,
+        frame: owned WasmFrameKind,
+        str: owned WasmStr,
+    ) {
+        builder.push(frame, str);
     }
 }

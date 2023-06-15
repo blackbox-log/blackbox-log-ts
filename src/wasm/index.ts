@@ -1,4 +1,5 @@
 import * as DataParsers from './data';
+import { FrameKind, getFieldDefs } from './frames';
 import * as HeadersParsers from './headers';
 import { ManagedPointer } from './pointers';
 import { getOptionalStr, getStr, getStrSlice } from './str';
@@ -7,6 +8,7 @@ import { FirmwareKind, Version } from '../headers';
 import { ParseError } from '../parse-error';
 import { freezeMap, freezeSet, unreachable } from '../utils';
 
+import type { FieldDef } from './frames';
 import type { RawPointer } from './pointers';
 import type { WasmSlice } from './slice';
 import type { OptionalWasmStr, WasmStr } from './str';
@@ -36,9 +38,7 @@ export type WasmExports = {
 	file_getLog: (ptr: number, log: number) => number;
 
 	headers_free: (ptr: number) => void;
-	headers_mainDef: (ptr: number) => number;
-	headers_slowDef: (ptr: number) => number;
-	headers_gpsDef: (ptr: number) => number;
+	headers_frameDef: (ptr: number, frame: FrameKind) => number;
 	headers_firmwareRevision: (ptr: number) => WasmStr;
 	headers_firmwareKind: (ptr: number) => number;
 	headers_firmwareDate: (ptr: number) => [number, number, number, number, number, number, number];
@@ -59,9 +59,7 @@ export type WasmExports = {
 		headers: number,
 		filters: number,
 	) => [RawPointer<DataParser>, RawPointer<ParserEvent>];
-	data_mainDef: (ptr: number) => number;
-	data_slowDef: (ptr: number) => number;
-	data_gpsDef: (ptr: number) => number;
+	data_frameDef: (ptr: number, frame: FrameKind) => number;
 	data_stats: (ptr: number) => [number, number, number, number, number, number];
 	data_next: (ptr: RawPointer<DataParser>) => void;
 	filter_new: (
@@ -70,9 +68,7 @@ export type WasmExports = {
 		slow: number,
 		gps: number,
 	) => [filterSetPtr: number, arenaPtr: number];
-	filter_main: (filters: number, len: number, ptr: number) => number;
-	filter_slow: (filters: number, len: number, ptr: number) => number;
-	filter_gps: (filters: number, len: number, ptr: number) => number;
+	filter_push: (filters: number, frame: FrameKind, len: number, ptr: number) => number;
 };
 /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -178,30 +174,25 @@ export class Wasm {
 	frameDef(
 		container: 'headers',
 		containerPtr: RawPointer<LogHeaders>,
-		frame: FrameDefKind,
+		frame: FrameKind,
 	): InternalFrameDef;
 	frameDef(
 		container: 'data',
 		containerPtr: RawPointer<DataParser>,
-		frame: FrameDefKind,
+		frame: FrameKind,
 	): InternalFrameDef;
 	frameDef(
 		container: 'headers' | 'data',
 		containerPtr: RawPointer<LogHeaders | DataParser>,
-		frame: FrameDefKind,
+		frame: FrameKind,
 	): InternalFrameDef {
 		const memory = this.#dataView;
-		const ptr = this.#wasm[`${container}_${frame}Def`](containerPtr);
+		const ptr = this.#wasm[`${container}_frameDef`](containerPtr, frame);
 		const len = memory.getUint32(ptr, true);
 		const fields = memory.getUint32(ptr + 4, true);
 
 		const def = freezeMap(
-			new Map(
-				HeadersParsers.getFieldDefs(
-					[len, fields] as WasmSlice<[string, HeadersParsers.FieldDef]>,
-					this.#wasm,
-				),
-			),
+			new Map(getFieldDefs([len, fields] as WasmSlice<[string, FieldDef]>, this.#wasm)),
 		);
 
 		this.#wasm.frameDef_free(ptr);
@@ -295,28 +286,25 @@ export class Wasm {
 			let ptr = arenaPtr;
 			const memory = this.#memoryBytes;
 
-			const encodeAllFields = (
-				addField: (filterSetPtr: number, len: number, ptr: number) => number,
-				fields?: string[],
-			) => {
+			const encodeAllFields = (frame: FrameKind, fields?: string[]) => {
 				for (const field of fields ?? []) {
 					const { written } = encoder.encodeInto(field, memory.subarray(ptr, arenaEnd));
-					addField(filterSetPtr, written!, ptr);
+					this.#wasm.filter_push(filterSetPtr, frame, written!, ptr);
 					ptr += written!;
 				}
 			};
 
-			encodeAllFields(this.#wasm.filter_main, main);
-			encodeAllFields(this.#wasm.filter_slow, slow);
-			encodeAllFields(this.#wasm.filter_gps, gps);
+			encodeAllFields(FrameKind.Main, main);
+			encodeAllFields(FrameKind.Slow, slow);
+			encodeAllFields(FrameKind.Gps, gps);
 		}
 
 		const [data, eventPtr] = this.#wasm.data_new(headers, filterSetPtr);
 
 		this.#dataParserInfo.set(data, {
-			main: this.frameDef('data', data, 'main'),
-			slow: this.frameDef('data', data, 'slow'),
-			gps: this.frameDef('data', data, 'gps'),
+			main: this.frameDef('data', data, FrameKind.Main),
+			slow: this.frameDef('data', data, FrameKind.Slow),
+			gps: this.frameDef('data', data, FrameKind.Gps),
 			eventPtr,
 		});
 		return new ManagedPointer(data, this.#wasm.data_free);

@@ -6,6 +6,7 @@ mod macros;
 mod data;
 mod ffi;
 mod file;
+mod frames;
 mod headers;
 mod owned_slice;
 mod panic;
