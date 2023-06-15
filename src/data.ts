@@ -46,6 +46,24 @@ export type Stats = {
 };
 
 export type DataParserOptions = {
+	/**
+	 * If present, each property sets the list of optional fields to be included in the `fields` map
+	 * for the corresponding frame type. Any omitted properties will include all fields.
+	 *
+	 * @example
+	 * ```ts
+	 * const options = {
+	 *     fields: {
+	 *         // Only include `rcCommand[0]` through `rcCommand[3]` in main frames
+	 *         main: ['rcCommand'],
+	 *         // Include all fields in slow frames
+	 *         slow: undefined,
+	 *         // Do not include any optional fields in gps frames
+	 *         gps: [],
+	 *     },
+	 * };
+	 * ```
+	 */
 	fields?: {
 		main?: string[];
 		slow?: string[];
