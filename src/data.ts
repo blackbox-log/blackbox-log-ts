@@ -1,4 +1,4 @@
-import type { LogHeaders } from './headers';
+import type { FrameDef, LogHeaders } from './headers';
 import type { ManagedPointer, Wasm, WasmObject } from './wasm';
 
 export type ParserEvent =
@@ -77,11 +77,20 @@ export class DataParser implements WasmObject, IterableIterator<ParserEvent> {
 	readonly #headers: LogHeaders;
 	#done = false;
 
+	#mainFrameDef: FrameDef;
+	#slowFrameDef: FrameDef;
+	#gpsFrameDef: FrameDef;
+
 	/** @internal */
 	constructor(wasm: Wasm, ptr: ManagedPointer<DataParser>, headers: LogHeaders) {
 		this.#wasm = wasm;
 		this.#ptr = ptr;
 		this.#headers = headers;
+
+		const frameDefs = wasm.dataFrameDefs(ptr.ptr)!;
+		this.#mainFrameDef = frameDefs.main;
+		this.#slowFrameDef = frameDefs.slow;
+		this.#gpsFrameDef = frameDefs.gps;
 	}
 
 	free() {
@@ -94,6 +103,21 @@ export class DataParser implements WasmObject, IterableIterator<ParserEvent> {
 
 	get headers(): LogHeaders {
 		return this.#headers;
+	}
+
+	/** Main frame definition after any filters */
+	get mainFrameDef(): FrameDef {
+		return this.#mainFrameDef;
+	}
+
+	/** Slow frame definition after any filters */
+	get slowFrameDef(): FrameDef {
+		return this.#slowFrameDef;
+	}
+
+	/** GPS frame definition after any filters */
+	get gpsFrameDef(): FrameDef {
+		return this.#gpsFrameDef;
 	}
 
 	stats(): Readonly<Stats> {

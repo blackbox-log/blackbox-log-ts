@@ -8,6 +8,7 @@
     [`FieldFilterSet`](https://docs.rs/blackbox-log/0.3.1/blackbox_log/struct.FieldFilterSet.html)
     from the Rust api to limit which fields should be returned for each frame type. This can improve
     performance.
+-   `DataParser.{main,slow,gps}FrameDef`: Get frame definition after any field filters
 
 ### [0.2.0] - 2023-06-09
 

@@ -73,7 +73,8 @@ export type WasmExports = {
 /* eslint-enable @typescript-eslint/naming-convention */
 
 type FrameDefKind = 'main' | 'slow' | 'gps';
-type DataParseInfo = Record<FrameDefKind, InternalFrameDef> & {
+type DataParseInfo = {
+	frameDefs: Record<FrameDefKind, InternalFrameDef>;
 	eventPtr: RawPointer<ParserEvent>;
 };
 
@@ -302,12 +303,18 @@ export class Wasm {
 		const [data, eventPtr] = this.#wasm.data_new(headers, filterSetPtr);
 
 		this.#dataParserInfo.set(data, {
-			main: this.frameDef('data', data, FrameKind.Main),
-			slow: this.frameDef('data', data, FrameKind.Slow),
-			gps: this.frameDef('data', data, FrameKind.Gps),
+			frameDefs: {
+				main: this.frameDef('data', data, FrameKind.Main),
+				slow: this.frameDef('data', data, FrameKind.Slow),
+				gps: this.frameDef('data', data, FrameKind.Gps),
+			},
 			eventPtr,
 		});
 		return new ManagedPointer(data, this.#wasm.data_free);
+	}
+
+	dataFrameDefs(data: RawPointer<DataParser>): DataParseInfo['frameDefs'] | undefined {
+		return this.#dataParserInfo.get(data)?.frameDefs;
 	}
 
 	dataStats(data: RawPointer<DataParser>): Stats {
@@ -320,7 +327,7 @@ export class Wasm {
 
 	dataNext(data: RawPointer<DataParser>): ParserEvent | undefined {
 		this.#wasm.data_next(data);
-		const { eventPtr, ...frameDefs } = this.#dataParserInfo.get(data)!;
+		const { eventPtr, frameDefs } = this.#dataParserInfo.get(data)!;
 
 		const memory = this.#dataView;
 
