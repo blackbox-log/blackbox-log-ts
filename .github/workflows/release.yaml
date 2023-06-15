@@ -1,0 +1,93 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  wasm:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wasm
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use rust-toolchain.toml
+        run: mv rust-toolchain.toml ..
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache: false
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: wasm
+      - name: Install Just
+        uses: taiki-e/install-action@just
+      - name: Install wasm-opt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(gh api -H Accept:application/vnd.github+json /repos/WebAssembly/binaryen/releases/latest | jq -r .tag_name)
+          echo "Downloading release '$version'"
+          curl -LO "https://github.com/WebAssembly/binaryen/releases/download/$version/binaryen-$version-x86_64-linux.tar.gz"
+          curl -Lo sha256 "https://github.com/WebAssembly/binaryen/releases/download/$version/binaryen-$version-x86_64-linux.tar.gz.sha256"
+          ls -A
+          sha256sum --check sha256
+          tar -xzf binaryen-$version-x86_64-linux.tar.gz
+          echo "$(pwd)/binaryen-$version/bin" >> $GITHUB_PATH
+      - name: Install multi-value-reverse-polyfill
+        run: cargo install --locked --git https://github.com/wetheredge/wasm-multi-value-reverse-polyfill
+      - name: Install wasm-set-start
+        run: cargo install --locked --git https://github.com/wetheredge/wasm-set-start
+      - run: just wasm
+      - uses: actions/upload-artifact@v3
+        with:
+          name: wasm
+          path: src/blackbox-log.wasm
+          if-no-files-found: error
+
+  build:
+    runs-on: ubuntu-latest
+    needs: wasm
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - uses: actions/download-artifact@v3
+        with:
+          name: wasm
+          path: src/
+      - run: pnpm install --frozen-lockfile
+      - name: Install Just
+        uses: taiki-e/install-action@just
+      - run: just build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          registry-url: 'https://registry.npmjs.org'
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+      - run: pnpm publish --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'
