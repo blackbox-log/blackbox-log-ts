@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+### [0.2.1] - 2023-06-15
+
 ### Added
 
 -   New options parameter for `LogHeaders.getDataParser` with a `filters` field analogous to
@@ -60,7 +62,8 @@
 
 Initial release
 
-[unreleased]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.2.0...HEAD
+[unreleased]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/blackbox-log/blackbox-log-ts/compare/v0.1.3...v0.1.4
