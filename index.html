@@ -124,7 +124,9 @@
 
 				updateMemory();
 
-				const dataParser = headers.getDataParser();
+				const dataParser = headers.getDataParser({
+					fields: { main: [], slow: [], gps: [] },
+				});
 				updateCounts(dataParser);
 				updateMemory();
 

@@ -1,8 +1,32 @@
+use std::ops::Deref;
+use std::{slice, str};
+
 use crate::OwnedSlice;
 
+/// Wrapper around the raw parts of a `str` so as to ensure reliable layout to
+/// pass in/out of WebAssembly.
+///
+/// # Safety
+///
+/// This is essentially the same as a `[u8]`, so all invariants from
+/// [`std::slice::from_raw_parts`] must be upheld. Additionally, as with a
+/// `str`, all pointed to bytes must be valid UTF-8.
 #[derive(Clone, Copy)]
 #[repr(C)]
 pub struct WasmStr(usize, *const u8);
+
+impl Deref for WasmStr {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        // SAFETY: all invariants of `[u8]` & `str` are already required by [`WasmStr`].
+        // See the Safety section in its docs.
+        unsafe {
+            let slice = slice::from_raw_parts(self.1, self.0);
+            str::from_utf8_unchecked(slice)
+        }
+    }
+}
 
 impl From<&str> for WasmStr {
     #[inline]
@@ -32,12 +56,8 @@ impl From<String> for OwnedWasmStr {
 
 impl From<Box<str>> for OwnedWasmStr {
     fn from(s: Box<str>) -> Self {
-        Self::from(s.into_boxed_bytes())
-    }
-}
-
-impl From<Box<[u8]>> for OwnedWasmStr {
-    fn from(bytes: Box<[u8]>) -> Self {
+        // SAFETY: `s` is known to be valid UTF-8 since it comes from a `str`
+        let bytes = s.into_boxed_bytes();
         Self(bytes.into())
     }
 }

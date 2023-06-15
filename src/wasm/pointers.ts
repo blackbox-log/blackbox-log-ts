@@ -1,5 +1,5 @@
 declare const pointee: unique symbol;
-/** 
+/**
  * A raw, unmanaged pointer to an object in wasm memory.
  * @internal
  */

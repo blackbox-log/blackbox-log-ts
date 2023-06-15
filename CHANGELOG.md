@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+
+-   New options parameter for `LogHeaders.getDataParser` with a `filters` field analogous to
+    [`FieldFilterSet`](https://docs.rs/blackbox-log/0.3.1/blackbox_log/struct.FieldFilterSet.html)
+    from the Rust api to limit which fields should be returned for each frame type. This can improve
+    performance.
+
 ### [0.2.0] - 2023-06-09
 
 ### Changed

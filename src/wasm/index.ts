@@ -10,7 +10,7 @@ import { freezeMap, freezeSet, unreachable } from '../utils';
 import type { RawPointer } from './pointers';
 import type { WasmSlice } from './slice';
 import type { OptionalWasmStr, WasmStr } from './str';
-import type { DataParser, ParserEvent, Stats } from '../data';
+import type { DataParser, DataParserOptions, ParserEvent, Stats } from '../data';
 import type { LogFile } from '../file';
 import type { InternalFrameDef, LogHeaders } from '../headers';
 
@@ -55,14 +55,28 @@ export type WasmExports = {
 	unknownHeaders_free: (length: number, ptr: number) => void;
 
 	data_free: (ptr: number) => void;
-	data_new: (headers: number) => [RawPointer<DataParser>, RawPointer<ParserEvent>];
+	data_new: (
+		headers: number,
+		filters: number,
+	) => [RawPointer<DataParser>, RawPointer<ParserEvent>];
+	data_mainDef: (ptr: number) => number;
+	data_slowDef: (ptr: number) => number;
+	data_gpsDef: (ptr: number) => number;
 	data_stats: (ptr: number) => [number, number, number, number, number, number];
 	data_next: (ptr: RawPointer<DataParser>) => void;
+	filter_new: (
+		arenaLength: number,
+		main: number,
+		slow: number,
+		gps: number,
+	) => [filterSetPtr: number, arenaPtr: number];
+	filter_main: (filters: number, len: number, ptr: number) => number;
+	filter_slow: (filters: number, len: number, ptr: number) => number;
+	filter_gps: (filters: number, len: number, ptr: number) => number;
 };
 /* eslint-enable @typescript-eslint/naming-convention */
 
 type FrameDefKind = 'main' | 'slow' | 'gps';
-type CachedFrameDefs = Partial<Record<FrameDefKind, InternalFrameDef>>;
 type DataParseInfo = Record<FrameDefKind, InternalFrameDef> & {
 	eventPtr: RawPointer<ParserEvent>;
 };
@@ -122,9 +136,9 @@ export class Wasm {
 	}
 
 	readonly #wasm;
-	#frameDefs = new Map<RawPointer<LogHeaders>, CachedFrameDefs>();
 	#dataParserInfo = new Map<RawPointer<DataParser>, DataParseInfo>();
 
+	#_cachedUint8Array: Uint8Array | undefined;
 	#_cachedDataView: DataView | undefined;
 
 	private constructor(wasm: WasmExports) {
@@ -154,26 +168,30 @@ export class Wasm {
 
 	newHeaders(file: RawPointer<LogFile>, log: number): ManagedPointer<LogHeaders> {
 		const ptr = this.#wasm.file_getHeaders(file, log);
-		this.#frameDefs.set(ptr, {});
 		return new ManagedPointer(ptr, this.freeHeaders.bind(this));
 	}
 
 	freeHeaders(headers: RawPointer<LogHeaders>) {
-		this.#frameDefs.delete(headers);
 		this.#wasm.headers_free(headers);
 	}
 
-	frameDef(headers: RawPointer<LogHeaders>, frame: FrameDefKind): InternalFrameDef {
-		// Was initialized in `newHeaders`
-		const cache = this.#frameDefs.get(headers)!;
-		const cachedDef = cache[frame];
-
-		if (cachedDef !== undefined) {
-			return cachedDef;
-		}
-
+	frameDef(
+		container: 'headers',
+		containerPtr: RawPointer<LogHeaders>,
+		frame: FrameDefKind,
+	): InternalFrameDef;
+	frameDef(
+		container: 'data',
+		containerPtr: RawPointer<DataParser>,
+		frame: FrameDefKind,
+	): InternalFrameDef;
+	frameDef(
+		container: 'headers' | 'data',
+		containerPtr: RawPointer<LogHeaders | DataParser>,
+		frame: FrameDefKind,
+	): InternalFrameDef {
 		const memory = this.#dataView;
-		const ptr = this.#wasm[`headers_${frame}Def`](headers);
+		const ptr = this.#wasm[`${container}_${frame}Def`](containerPtr);
 		const len = memory.getUint32(ptr, true);
 		const fields = memory.getUint32(ptr + 4, true);
 
@@ -185,9 +203,8 @@ export class Wasm {
 				),
 			),
 		);
-		this.#wasm.frameDef_free(ptr);
 
-		cache[frame] = def;
+		this.#wasm.frameDef_free(ptr);
 		return def;
 	}
 
@@ -252,14 +269,56 @@ export class Wasm {
 		return freezeMap(map);
 	}
 
-	newData(headers: RawPointer<LogHeaders>): ManagedPointer<DataParser> {
-		const main = this.frameDef(headers, 'main');
-		const slow = this.frameDef(headers, 'slow');
-		const gps = this.frameDef(headers, 'gps');
+	newData(
+		headers: RawPointer<LogHeaders>,
+		options: DataParserOptions,
+	): ManagedPointer<DataParser> {
+		const { fields } = options;
+		let filterSetPtr = 0;
+		if (fields && (fields.main ?? fields.slow ?? fields.gps)) {
+			const { main, slow, gps } = fields;
+			const encoder = new TextEncoder();
 
-		const [data, eventPtr] = this.#wasm.data_new(headers);
+			const arenaLength =
+				[main, slow, gps].flat().reduce((acc, s) => acc + (s?.length ?? 0), 0) * 3;
 
-		this.#dataParserInfo.set(data, { main, slow, gps, eventPtr });
+			const filterNewPtrs = this.#wasm.filter_new(
+				arenaLength,
+				main?.length ?? -1,
+				slow?.length ?? -1,
+				gps?.length ?? -1,
+			);
+			filterSetPtr = filterNewPtrs[0];
+			const arenaPtr = filterNewPtrs[1];
+			const arenaEnd = arenaPtr + arenaLength;
+
+			let ptr = arenaPtr;
+			const memory = this.#memoryBytes;
+
+			const encodeAllFields = (
+				addField: (filterSetPtr: number, len: number, ptr: number) => number,
+				fields?: string[],
+			) => {
+				for (const field of fields ?? []) {
+					const { written } = encoder.encodeInto(field, memory.subarray(ptr, arenaEnd));
+					addField(filterSetPtr, written!, ptr);
+					ptr += written!;
+				}
+			};
+
+			encodeAllFields(this.#wasm.filter_main, main);
+			encodeAllFields(this.#wasm.filter_slow, slow);
+			encodeAllFields(this.#wasm.filter_gps, gps);
+		}
+
+		const [data, eventPtr] = this.#wasm.data_new(headers, filterSetPtr);
+
+		this.#dataParserInfo.set(data, {
+			main: this.frameDef('data', data, 'main'),
+			slow: this.frameDef('data', data, 'slow'),
+			gps: this.frameDef('data', data, 'gps'),
+			eventPtr,
+		});
 		return new ManagedPointer(data, this.#wasm.data_free);
 	}
 
@@ -267,7 +326,7 @@ export class Wasm {
 		const [event, main, slow, gps, gpsHome, progress] = this.#wasm.data_stats(data);
 		return {
 			counts: { event, main, slow, gps, gpsHome },
-			progress
+			progress,
 		};
 	}
 
@@ -318,5 +377,13 @@ export class Wasm {
 		}
 
 		return (this.#_cachedDataView = new DataView(this.#wasm.memory.buffer));
+	}
+
+	get #memoryBytes(): Uint8Array {
+		if (this.#_cachedUint8Array?.byteLength) {
+			return this.#_cachedUint8Array;
+		}
+
+		return (this.#_cachedUint8Array = new Uint8Array(this.#wasm.memory.buffer));
 	}
 }

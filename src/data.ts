@@ -45,6 +45,14 @@ export type Stats = {
 	progress: number;
 };
 
+export type DataParserOptions = {
+	fields?: {
+		main?: string[];
+		slow?: string[];
+		gps?: string[];
+	};
+};
+
 export class DataParser implements WasmObject, IterableIterator<ParserEvent> {
 	readonly #wasm: Wasm;
 	readonly #ptr: ManagedPointer<DataParser>;

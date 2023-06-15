@@ -46,6 +46,8 @@ mod wasm_safe_impl {
 
     #[cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
     unsafe impl WasmByValue for usize {}
+    #[cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
+    unsafe impl WasmByValue for isize {}
 
     #[cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
     unsafe impl<const N: usize, T: WasmByValue> WasmByValue for [T; N] {}

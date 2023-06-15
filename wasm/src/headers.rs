@@ -4,7 +4,7 @@ use blackbox_log::prelude::*;
 use blackbox_log::Reader;
 use time::PrimitiveDateTime;
 
-use crate::data::WasmDataParser;
+use crate::data::{WasmDataParser, WasmFieldFilterSetBuilder};
 use crate::str::WasmStr;
 use crate::units::WasmUnit;
 use crate::{OwnedSlice, Shared, WasmByValue};
@@ -31,11 +31,15 @@ impl WasmHeaders {
         }
     }
 
-    pub fn get_data_parser(&self) -> WasmDataParser {
+    pub fn get_data_parser(
+        &self,
+        filters: Option<Box<WasmFieldFilterSetBuilder>>,
+    ) -> WasmDataParser {
         WasmDataParser::new(
             Shared::clone(&self.headers),
             self.reader.clone(),
             Shared::clone(&self.data),
+            filters,
         )
     }
 
@@ -69,7 +73,7 @@ impl WasmHeaders {
 
 #[derive(Default)]
 #[repr(transparent)]
-struct WasmFrameDef(OwnedSlice<WasmFieldDef>);
+pub(crate) struct WasmFrameDef(OwnedSlice<WasmFieldDef>);
 
 impl_boxed_wasm_ffi!(WasmFrameDef);
 
