@@ -1,10 +1,7 @@
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import { viteStaticCopy as staticCopy } from 'vite-plugin-static-copy';
 import { dependencies } from './package.json';
-
-const isDev = process.env.NODE_ENV === 'development';
 
 // Vite default + wasm sign-extension, multi-value, and bulk memory
 export const target = [
