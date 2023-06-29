@@ -1,0 +1,4 @@
+[toolchain]
+channel = "nightly-2023-06-27"
+components = ["miri", "rust-src"]
+targets = ["wasm32-unknown-unknown"]

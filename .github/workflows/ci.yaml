@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use rust-toolchain.toml
-        run: mv rust-toolchain.toml ..
+        run: cp rust-toolchain.toml ..
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           cache: false
@@ -38,7 +38,6 @@ jobs:
         working-directory: wasm
     steps:
       - uses: actions/checkout@v3
-      - run: rm rust-toolchain.toml
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: nightly
@@ -56,12 +55,12 @@ jobs:
         working-directory: wasm
     steps:
       - uses: actions/checkout@v3
-      - run: rm rust-toolchain.toml
+      - name: Use rust-toolchain.miri.toml
+        run: |
+          mv rust-toolchain.miri.toml rust-toolchain.toml
+          cp rust-toolchain.toml ..
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: nightly
-          target: wasm32-unknown-unknown
-          components: miri,rust-src
           cache: false
       - uses: Swatinem/rust-cache@v2
         with:
@@ -76,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use rust-toolchain.toml
-        run: mv rust-toolchain.toml ..
+        run: cp rust-toolchain.toml ..
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           cache: false
