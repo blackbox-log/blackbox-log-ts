@@ -8,7 +8,7 @@ extends:
   - xo
   - xo-typescript
   - plugin:unicorn/recommended
-  - plugin:prettier/recommended
+  - prettier
 plugins:
   - eslint-plugin-tsdoc
 parserOptions:

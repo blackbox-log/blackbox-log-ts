@@ -18,7 +18,11 @@ export enum FirmwareKind {
 }
 
 export class Version {
-	constructor(public major: number, public minor: number, public patch: number) {}
+	constructor(
+		public major: number,
+		public minor: number,
+		public patch: number,
+	) {}
 
 	toString(): string {
 		return `${this.major}.${this.minor}.${this.patch}`;
