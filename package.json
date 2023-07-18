@@ -45,7 +45,7 @@
 		"typedoc": "^0.24.4",
 		"typescript": "^5.0.4",
 		"vite": "^4.2.1",
-		"vite-plugin-static-copy": "^0.16.0"
+		"vite-plugin-static-copy": "^0.17.0"
 	},
 	"packageManager": "pnpm@8.6.7"
 }
