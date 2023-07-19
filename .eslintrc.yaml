@@ -42,6 +42,12 @@ rules:
     - error
     - ignore: ['^#']
   tsdoc/syntax: warn
+  '@typescript-eslint/no-unused-vars':
+    - error
+    - ignoreRestSiblings: true
+      argsIgnorePattern: '^_'
+      caughtErrors: all
+      caughtErrorsIgnorePattern: '^_$'
   unicorn/custom-error-definition: error
   unicorn/prevent-abbreviations: off
   unicorn/switch-case-braces:
