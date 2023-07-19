@@ -58,8 +58,8 @@ export class LogHeaders implements WasmObject {
 	}
 
 	getDataParser(options: DataParserOptions = {}): DataParser {
-		const ptr = this.#wasm.newData(this.#ptr.ptr, options);
-		const parser = new DataParser(this.#wasm, ptr, this);
+		const [ptr, info] = this.#wasm.newData(this.#ptr.ptr, options);
+		const parser = new DataParser(this.#wasm, ptr, info, this);
 
 		this.#parsers.push(new WeakRef(parser));
 		return parser;
