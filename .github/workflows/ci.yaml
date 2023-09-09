@@ -18,7 +18,7 @@ jobs:
       run:
         working-directory: wasm
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use rust-toolchain.toml
         run: mv rust-toolchain.toml ..
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -37,7 +37,7 @@ jobs:
       run:
         working-directory: wasm
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: rm rust-toolchain.toml
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -55,7 +55,7 @@ jobs:
       run:
         working-directory: wasm
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: rm rust-toolchain.toml
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -74,7 +74,7 @@ jobs:
       run:
         working-directory: wasm
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use rust-toolchain.toml
         run: mv rust-toolchain.toml ..
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -111,7 +111,7 @@ jobs:
   prettier:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
       - uses: actions/setup-node@v3
         with:
@@ -126,7 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-wasm
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
       - uses: actions/setup-node@v3
         with:
@@ -144,7 +144,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-wasm
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
       - uses: actions/setup-node@v3
         with:
@@ -163,5 +163,5 @@ jobs:
   typos:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: crate-ci/typos@master
