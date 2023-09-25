@@ -45,7 +45,7 @@ set-start:
 
 # Apply multi-value transform
 multivalue:
-    multi-value-reverse-polyfill {{ wasmFile }} \
+    wasm-multi-value-reverse-polyfill {{ wasmFile }} \
         'data_new i32 i32' \
         'data_stats i32 i32 i32 i32 i32 f32' \
         'filter_new i32 i32' \
