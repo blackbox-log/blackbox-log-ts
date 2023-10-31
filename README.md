@@ -9,6 +9,12 @@ This is a TypeScript library to parse blackbox log files from [Betaflight] & [IN
 cross-platform without needing the official `blackbox_decode`, which is somewhat out-of-date. The
 parser itself is [this Rust library][rust repo] compiled to WebAssembly.
 
+> [!IMPORTANT]
+> This library is no longer being actively maintained. All of my projects have moved to using the
+> Rust library directly in a custom WebAssembly library. If you are interested in using this library
+> and/or helping develop/maintain it, please
+> [open an issue](https://github.com/blackbox-log/blackbox-log-ts/issues/new).
+
 ## Installation
 
 Install from NPM under the name `blackbox-log`:
