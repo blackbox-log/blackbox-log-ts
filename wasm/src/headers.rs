@@ -1,42 +1,35 @@
 use blackbox_log::headers::{Firmware, FirmwareVersion};
 use blackbox_log::prelude::*;
-use blackbox_log::Reader;
 use time::PrimitiveDateTime;
 
-use crate::data::{WasmDataParser, WasmFieldFilterSetBuilder};
+use crate::data::{WasmDataParser, WasmFilterSetBuilder};
 use crate::frames::{WasmFrameDef, WasmFrameKind};
 use crate::str::WasmStr;
 use crate::{OwnedSlice, Shared, WasmByValue};
 
 pub struct WasmHeaders {
     headers: Shared<Headers<'static>>,
-    reader: Reader<'static>,
     data: Shared<OwnedSlice<u8>>,
 }
 
 impl_boxed_wasm_ffi!(WasmHeaders);
 
 impl WasmHeaders {
-    pub(crate) fn new(mut reader: Reader<'static>, data: Shared<OwnedSlice<u8>>) -> Self {
-        let headers = match Headers::parse(&mut reader) {
-            Ok(headers) => headers,
-            Err(err) => crate::throw_headers_parse_error(err),
-        };
+    pub(crate) fn new(
+        headers: blackbox_log::headers::ParseResult<Headers<'static>>,
+        data: Shared<OwnedSlice<u8>>,
+    ) -> Self {
+        let headers = headers.unwrap_or_else(|e| crate::throw_headers_parse_error(e));
 
         Self {
             headers: Shared::new(headers),
-            reader,
             data,
         }
     }
 
-    pub fn get_data_parser(
-        &self,
-        filters: Option<Box<WasmFieldFilterSetBuilder>>,
-    ) -> WasmDataParser {
+    pub fn get_data_parser(&self, filters: Option<Box<WasmFilterSetBuilder>>) -> WasmDataParser {
         WasmDataParser::new(
             Shared::clone(&self.headers),
-            self.reader.clone(),
             Shared::clone(&self.data),
             filters,
         )

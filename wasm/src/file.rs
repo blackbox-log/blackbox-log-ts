@@ -31,8 +31,9 @@ impl WasmFile {
     }
 
     pub fn parse_headers(&self, log: usize) -> WasmHeaders {
-        let reader = self.file.get_reader(log);
-        WasmHeaders::new(reader, Shared::clone(&self.data))
+        // `log` is checked to be in range in JS
+        let headers = self.file.parse(log).unwrap();
+        WasmHeaders::new(headers, Shared::clone(&self.data))
     }
 }
 

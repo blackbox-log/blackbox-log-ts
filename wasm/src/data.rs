@@ -7,13 +7,14 @@ use blackbox_log::data::Stats;
 use blackbox_log::frame::{Frame, GpsFrame, MainFrame, SlowFrame};
 use blackbox_log::prelude::*;
 use blackbox_log::units::{si, Time};
-use blackbox_log::{FieldFilterSet, Reader};
+use blackbox_log::{Filter, FilterSet};
 
+use crate::ffi::IntoWasmFfi;
 use crate::frames::{WasmFrameDef, WasmFrameKind};
 use crate::headers::WasmHeaders;
 use crate::owned_slice::AllocError;
 use crate::str::WasmStr;
-use crate::{IntoWasmFfi, OwnedSlice, Shared, WasmByValue, WasmFfi};
+use crate::{OwnedSlice, Shared, WasmByValue, WasmFfi};
 
 // SAFETY: field order *must* be `parser` first, then `headers`, then `data` to
 // ensure correct drop order
@@ -29,9 +30,8 @@ impl_boxed_wasm_ffi!(WasmDataParser);
 impl WasmDataParser {
     pub(crate) fn new(
         headers: Shared<Headers<'static>>,
-        reader: Reader<'static>,
         data: Shared<OwnedSlice<u8>>,
-        filters: Option<Box<WasmFieldFilterSetBuilder>>,
+        filters: Option<Box<WasmFilterSetBuilder>>,
     ) -> Self {
         // SAFETY: this is only used to create the `DataParser`, which is guaranteed to
         // be dropped before `headers` by the declaration order in the struct
@@ -41,7 +41,7 @@ impl WasmDataParser {
 
         Self {
             parsed: Box::pin(WasmParseEvent::default()),
-            parser: DataParser::with_filters(reader, headers_ref, &filters),
+            parser: headers_ref.data_parser_with_filters(&filters),
             _headers: headers,
             _data: data,
         }
@@ -78,16 +78,16 @@ impl WasmDataParser {
 }
 
 #[allow(dead_code)]
-pub struct WasmFieldFilterSetBuilder {
+pub struct WasmFilterSetBuilder {
     main: Option<Vec<&'static str>>,
     slow: Option<Vec<&'static str>>,
     gps: Option<Vec<&'static str>>,
     arena: NonNull<u8>,
 }
 
-impl_boxed_wasm_ffi!(WasmFieldFilterSetBuilder);
+impl_boxed_wasm_ffi!(WasmFilterSetBuilder);
 
-impl WasmFieldFilterSetBuilder {
+impl WasmFilterSetBuilder {
     fn new(arena_size: usize, main: isize, slow: isize, gps: isize) -> Result<Self, AllocError> {
         Ok(Self {
             main: usize::try_from(main).ok().map(Vec::with_capacity),
@@ -113,11 +113,17 @@ impl WasmFieldFilterSetBuilder {
         fields.unwrap().push(str);
     }
 
-    fn build(self) -> FieldFilterSet {
-        FieldFilterSet {
-            main: self.main.as_deref().map(Into::into),
-            slow: self.slow.as_deref().map(Into::into),
-            gps: self.gps.as_deref().map(Into::into),
+    fn build(self) -> FilterSet {
+        let make_filter = |filter: Option<Vec<&str>>| {
+            filter.map_or(Filter::Unfiltered, |fields| {
+                Filter::OnlyFields(fields.into_iter().collect())
+            })
+        };
+
+        FilterSet {
+            main: make_filter(self.main),
+            slow: make_filter(self.slow),
+            gps: make_filter(self.gps),
         }
     }
 }
@@ -321,19 +327,19 @@ where
 }
 
 #[repr(C)]
-struct FieldFilterSetBuilderNew(<Box<WasmFieldFilterSetBuilder> as WasmFfi>::Ffi, *const u8);
+struct FieldFilterSetBuilderNew(<Box<WasmFilterSetBuilder> as WasmFfi>::Ffi, *const u8);
 
 // SAFETY: repr(C) & where bounds for each field
 unsafe impl WasmByValue for FieldFilterSetBuilderNew
 where
-    <Box<WasmFieldFilterSetBuilder> as WasmFfi>::Ffi: WasmByValue,
+    <Box<WasmFilterSetBuilder> as WasmFfi>::Ffi: WasmByValue,
     *const u8: WasmByValue,
 {
 }
 
 wasm_export!(free data_free: Box<WasmDataParser>);
 wasm_export! {
-    fn data_new(headers: ref Box<WasmHeaders>, filters: owned *mut WasmFieldFilterSetBuilder) -> DataNew {
+    fn data_new(headers: ref Box<WasmHeaders>, filters: owned *mut WasmFilterSetBuilder) -> DataNew {
         let filters = if filters.is_null() {
             None
         } else {
@@ -378,7 +384,7 @@ wasm_export! {
         slow: owned isize,
         gps: owned isize,
     ) -> FieldFilterSetBuilderNew {
-        let builder = Box::new(WasmFieldFilterSetBuilder::new(
+        let builder = Box::new(WasmFilterSetBuilder::new(
             arena_size,
             main,
             slow,
@@ -389,7 +395,7 @@ wasm_export! {
     }
 
     fn filter_push(
-        builder: ref_mut Box<WasmFieldFilterSetBuilder>,
+        builder: ref_mut Box<WasmFilterSetBuilder>,
         frame: owned WasmFrameKind,
         str: owned WasmStr,
     ) {
