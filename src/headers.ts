@@ -33,7 +33,7 @@ export class LogHeaders implements WasmObject {
 	readonly #wasm: Wasm;
 	readonly #ptr: ManagedPointer<LogHeaders>;
 
-	#parsers: Array<WeakRef<DataParser>> = [];
+	readonly #parsers: Array<WeakRef<DataParser>> = [];
 
 	#_mainFrameDef: InternalFrameDef | undefined;
 	#_slowFrameDef: InternalFrameDef | undefined;
