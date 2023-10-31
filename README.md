@@ -3,7 +3,7 @@
 [![CI](https://github.com/blackbox-log/blackbox-log-ts/actions/workflows/ci.yaml/badge.svg)](https://github.com/blackbox-log/blackbox-log-ts/actions/workflows/ci.yaml)
 [![npm](https://img.shields.io/npm/v/blackbox-log)](https://npmjs.com/blackbox-log)
 [![snyk](https://img.shields.io/snyk/vulnerabilities/npm/blackbox-log)](https://snyk.io/advisor/npm-package/blackbox-log)
-[![license](https://img.shields.io/github/license/blackbox-log/blackbox-log-ts)](https://github.com/blackbox-log/blackbox-log-ts/blob/main/COPYING)
+![license](https://img.shields.io/github/license/blackbox-log/blackbox-log-ts)
 
 This is a TypeScript library to parse blackbox log files from [Betaflight] & [INAV] on the web &
 cross-platform without needing the official `blackbox_decode`, which is somewhat out-of-date. The
